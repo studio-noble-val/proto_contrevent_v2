@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrevent : l'Ascension - MVP</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="ui-bar">
+        <div id="stats">
+            <p>Stamina: <span id="stamina">--</span></p>
+            <p>Lucidity: <span id="lucidity">--</span></p>
+            <p>Cohesion: <span id="cohesion">--</span></p>
+        </div>
+        <div id="actions">
+            <button id="pauseButton">Pause</button>
+        </div>
+        <div id="debugControls">
+            <label for="windSpeedSlider">Vitesse Vent:</label>
+            <input type="range" id="windSpeedSlider" min="0" max="100" value="45" step="1">
+            <span id="windSpeedValue">1.0</span>
+        </div>
+        <div id="formationControls">
+            <span>Formation: </span>
+            <button class="formationButton active" data-formation="none">Vrac</button>
+            <button class="formationButton" data-formation="triangle">Triangle</button>
+            <button class="formationButton" data-formation="turtle">Tortue</button>
+            <button class="formationButton" data-formation="line">Ligne</button>
+        </div>
+    </div>
+
+    <div id="pauseIndicator">PAUSED</div>
+
+    <div id="narrativeEvent">
+        <p id="eventText"></p>
+        <div id="eventChoices"></div>
+    </div>
+
+    <div id="hex-inspector-popup">
+        <button id="inspector-close-button">&times;</button>
+        <h3>Infos Cellule</h3>
+        <p>Altitude: <span id="inspector-altitude">N/A</span></p>
+        <p>Vitesse Vent: <span id="inspector-wind-speed">N/A</span></p>
+        <p>Pression Vent: <span id="inspector-wind-pressure">N/A</span></p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
