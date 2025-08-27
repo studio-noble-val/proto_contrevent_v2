@@ -45,11 +45,32 @@ Développer un prototype de jeu de survie tactique en 2D, jouable via un navigat
 - **Réactivation de la simulation :** Restauration de la fonction `updateWind` qui était commentée, ce qui a réactivé la logique du vent.
 - **Flexibilité de test :** Ajout d'une case à cocher dans l'interface de débogage pour activer ou désactiver l'effet Venturi, permettant un meilleur contrôle sur les mécaniques de simulation.
 
-### Phase 9: Refactoring et Architecture (En cours)
+### Phase 9: Refactoring et Améliorations UX (Terminée)
 - **Séparation du code :** Division du fichier monolithique `script.js` en modules plus petits et spécialisés (`main.js`, `grid.js`, `horde.js`, `wind.js`, `ui.js`, `perlin.js`).
 - **Modularisation :** Modification de `index.html` pour utiliser les nouveaux modules JavaScript.
+- **Amélioration de l'UX :** Ajout d'infobulles explicatives (`tooltips`) sur chaque slider de l'interface de débogage pour clarifier leur fonction.
+- **Landing Page :** Création d'une page d'accueil (`index.html`) et déplacement du jeu sur `game.html`.
 
-### Phase 10: Landing Page et Système de Cartes (À venir)
-- **Page d'accueil :** Création d'une landing page (`index.html`) avec une présentation simple et un bouton pour lancer une partie.
-- **Page de jeu :** Déplacement de la logique du jeu actuel dans une page dédiée (`game.html`).
-- **Objectif futur - Système de cartes :** Conception d'un système permettant de sauvegarder les altitudes des cellules d'une carte et de charger ces cartes depuis la landing page.
+### Phase 10: Conditions de Victoire et d'Échec (À venir)
+- **Condition de Victoire :** Implémenter un "drapeau" à atteindre en amont de la carte. La victoire est déclenchée lorsque toute la Horde occupe les cellules adjacentes.
+- **Message de Victoire :** Afficher une fenêtre de félicitations.
+- **Condition d'Échec/Abandon :** Ajouter un bouton "It's Too Hard" pour quitter la partie et retourner à la page d'accueil.
+
+### Phase 11: Systèmes de Progression (À venir)
+- **Score :** Concevoir et implémenter un système de score pour évaluer la performance du joueur.
+- **Niveaux :** Mettre en place un système de "level up" après une victoire.
+
+### Phase 12: Statistiques et Équipement des Personnages (À venir)
+- **Statistiques de Base :** Définir et intégrer les caractéristiques des personnages (force, endurance, charisme).
+- **Système d'Équipement :** Anticiper l'architecture pour l'ajout futur d'équipements qui modifieront les statistiques.
+
+### Phase 13: Mécaniques de Horde Avancées (À venir)
+- **Protection de Formation :** Implémenter un effet d'"ombre" protectrice en aval des personnages.
+- **Influence des Stats :** La distance et l'intensité de l'ombre dépendront des statistiques et de l'équipement des personnages.
+
+### Phase 14: Refonte de l'Interface Utilisateur (UI/UX) (À venir)
+- **Correctifs CSS :** Résoudre les problèmes de dépassement et de mise en page dans l'interface de jeu.
+- **Amélioration du Design :** Moderniser et améliorer l'esthétique globale de l'UI.
+
+### Phase 15: Système de Cartes (À venir)
+- **Sauvegarde/Chargement :** Concevoir et implémenter un système pour créer, sauvegarder et charger des cartes définies par l'altitude de leurs cellules.

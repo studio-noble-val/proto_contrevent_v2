@@ -59,21 +59,31 @@ Suite à une interruption de session qui a corrompu l'état du code, une session
 - **Réactivation de la Simulation du Vent** : La fonction `updateWind` a été restaurée, réactivant ainsi la simulation dynamique du vent.
 - **Contrôle de l'Effet Venturi** : Suite à la demande de l'utilisateur, une case à cocher a été ajoutée à l'interface de débogage pour permettre d'activer ou de désactiver l'effet Venturi à la volée. Cela permet de mieux isoler et tester l'impact de cette mécanique sur le gameplay.
 
-## 3. Feuille de Route (Version 0.2)
+## 3. Feuille de Route (Version 0.2 - Terminée)
 
-Pour la version 0.2, nous nous concentrons sur la scalabilité du projet et l'amélioration de l'expérience utilisateur initiale.
+La version 0.2 s'est concentrée sur la scalabilité du projet et l'amélioration de l'expérience utilisateur initiale.
 
-### 3.1. Refactoring Majeur de l'Architecture
-L'objectif est de démanteler le fichier `script.js` monolithique pour créer une structure de code modulaire, plus facile à maintenir et à étendre.
-- **Séparation des responsabilités :** Le code sera divisé en plusieurs fichiers basés sur leur domaine fonctionnel (`main.js`, `grid.js`, `horde.js`, `wind.js`, `ui.js`, `perlin.js`).
-- **Utilisation des modules ES6 :** Le code sera adapté pour utiliser le système de modules JavaScript moderne, améliorant ainsi l'organisation et la gestion des dépendances.
+### 3.1. Refactoring et Améliorations UX
+- **Démantèlement du `script.js` monolithique** en modules ES6 pour une meilleure maintenabilité.
+- **Ajout d'infobulles** sur les contrôles de débogage pour améliorer l'ergonomie.
 
 ### 3.2. Création d'une Landing Page
-Une page d'accueil sera créée pour servir de point d'entrée au jeu.
-- **Contenu :** Elle inclura un titre, une illustration et un appel à l'action clair pour lancer une partie.
-- **Flux utilisateur :** Le jeu lui-même sera déplacé vers une page distincte (`game.html`), séparant la présentation de l'application de jeu.
+- **Mise en place d'une page d'accueil** (`index.html`) pour servir de point d'entrée.
+- **Séparation du jeu** sur sa propre page (`game.html`).
 
-### 3.3. Conception du Système de Cartes (Futur)
-C'est l'objectif à plus long terme qui guidera nos choix d'architecture.
-- **Principe :** Permettre la création et la sauvegarde de cartes définies par l'altitude de leurs cellules.
-- **Intégration :** La landing page permettra à terme de choisir entre une carte générée de manière procédurale (le mode actuel) ou de charger une carte prédéfinie.
+## 4. Feuille de Route (Prochaines Étapes)
+
+Les développements futurs se concentreront sur l'ajout de boucles de gameplay, l'enrichissement des mécaniques de jeu et l'amélioration de l'interface.
+
+### 4.1. Boucle de Gameplay Principale
+- **Conditions de Victoire/Échec :** Mettre en place une condition de victoire claire (atteindre un drapeau) et une option pour abandonner la partie.
+- **Progression :** Introduire un système de score et de niveaux pour motiver le joueur.
+
+### 4.2. Mécaniques de Jeu Approfondies
+- **Statistiques des Personnages :** Implémenter des statistiques (force, endurance, etc.) qui auront un impact direct sur le gameplay.
+- **Protection de Formation :** Ajouter une mécanique d'"ombre" protectrice qui dépendra des statistiques et de la formation de la Horde.
+- **Équipement :** Prévoir l'architecture pour un futur système d'équipement.
+
+### 4.3. Interface et Expérience Utilisateur
+- **Refonte de l'UI :** Corriger les problèmes de style et améliorer le design global de l'interface de jeu.
+- **Système de Cartes :** Développer le système de création, sauvegarde et chargement de cartes, comme initialement prévu.
