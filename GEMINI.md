@@ -59,4 +59,21 @@ Suite à une interruption de session qui a corrompu l'état du code, une session
 - **Réactivation de la Simulation du Vent** : La fonction `updateWind` a été restaurée, réactivant ainsi la simulation dynamique du vent.
 - **Contrôle de l'Effet Venturi** : Suite à la demande de l'utilisateur, une case à cocher a été ajoutée à l'interface de débogage pour permettre d'activer ou de désactiver l'effet Venturi à la volée. Cela permet de mieux isoler et tester l'impact de cette mécanique sur le gameplay.
 
-**Prochaine Étape** : Développer des "Personnalités" de vent distinctes (ex: rafales soudaines, vents tournants, zones de silence) en se basant sur le nouveau système dynamique.
+## 3. Feuille de Route (Version 0.2)
+
+Pour la version 0.2, nous nous concentrons sur la scalabilité du projet et l'amélioration de l'expérience utilisateur initiale.
+
+### 3.1. Refactoring Majeur de l'Architecture
+L'objectif est de démanteler le fichier `script.js` monolithique pour créer une structure de code modulaire, plus facile à maintenir et à étendre.
+- **Séparation des responsabilités :** Le code sera divisé en plusieurs fichiers basés sur leur domaine fonctionnel (`main.js`, `grid.js`, `horde.js`, `wind.js`, `ui.js`, `perlin.js`).
+- **Utilisation des modules ES6 :** Le code sera adapté pour utiliser le système de modules JavaScript moderne, améliorant ainsi l'organisation et la gestion des dépendances.
+
+### 3.2. Création d'une Landing Page
+Une page d'accueil sera créée pour servir de point d'entrée au jeu.
+- **Contenu :** Elle inclura un titre, une illustration et un appel à l'action clair pour lancer une partie.
+- **Flux utilisateur :** Le jeu lui-même sera déplacé vers une page distincte (`game.html`), séparant la présentation de l'application de jeu.
+
+### 3.3. Conception du Système de Cartes (Futur)
+C'est l'objectif à plus long terme qui guidera nos choix d'architecture.
+- **Principe :** Permettre la création et la sauvegarde de cartes définies par l'altitude de leurs cellules.
+- **Intégration :** La landing page permettra à terme de choisir entre une carte générée de manière procédurale (le mode actuel) ou de charger une carte prédéfinie.

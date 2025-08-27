@@ -44,3 +44,12 @@ Développer un prototype de jeu de survie tactique en 2D, jouable via un navigat
 - **Correction de bug critique :** Résolution d'un bug qui empêchait l'affichage de tous les éléments du jeu (grille, vent, horde) suite à une interruption de session.
 - **Réactivation de la simulation :** Restauration de la fonction `updateWind` qui était commentée, ce qui a réactivé la logique du vent.
 - **Flexibilité de test :** Ajout d'une case à cocher dans l'interface de débogage pour activer ou désactiver l'effet Venturi, permettant un meilleur contrôle sur les mécaniques de simulation.
+
+### Phase 9: Refactoring et Architecture (En cours)
+- **Séparation du code :** Division du fichier monolithique `script.js` en modules plus petits et spécialisés (`main.js`, `grid.js`, `horde.js`, `wind.js`, `ui.js`, `perlin.js`).
+- **Modularisation :** Modification de `index.html` pour utiliser les nouveaux modules JavaScript.
+
+### Phase 10: Landing Page et Système de Cartes (À venir)
+- **Page d'accueil :** Création d'une landing page (`index.html`) avec une présentation simple et un bouton pour lancer une partie.
+- **Page de jeu :** Déplacement de la logique du jeu actuel dans une page dédiée (`game.html`).
+- **Objectif futur - Système de cartes :** Conception d'un système permettant de sauvegarder les altitudes des cellules d'une carte et de charger ces cartes depuis la landing page.
