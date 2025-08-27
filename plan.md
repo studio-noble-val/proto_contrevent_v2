@@ -39,3 +39,8 @@ Développer un prototype de jeu de survie tactique en 2D, jouable via un navigat
 - **Vent Dynamique :** Remplacement de la source de vent statique par un système dynamique utilisant le bruit de Perlin pour créer des variations naturelles de force et de direction dans le temps.
 - **Contrôle Amélioré :** Remplacement du slider de contrôle du vent linéaire par un slider à réponse non-linéaire pour un ajustement plus fin des vitesses faibles.
 - **Équilibrage :** Sessions d'ajustements itératifs pour affiner la force, la vitesse et la "sensation" générale du vent.
+
+### Phase 8: Débogage et Amélioration de l'UX (Terminée)
+- **Correction de bug critique :** Résolution d'un bug qui empêchait l'affichage de tous les éléments du jeu (grille, vent, horde) suite à une interruption de session.
+- **Réactivation de la simulation :** Restauration de la fonction `updateWind` qui était commentée, ce qui a réactivé la logique du vent.
+- **Flexibilité de test :** Ajout d'une case à cocher dans l'interface de débogage pour activer ou désactiver l'effet Venturi, permettant un meilleur contrôle sur les mécaniques de simulation.

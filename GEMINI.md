@@ -51,4 +51,12 @@ L'objectif était de donner vie au concept des "Personnalités du Vent" en passa
 - **Contrôles Affinés** : Le slider de contrôle de la vitesse du vent a été modifié pour utiliser une échelle non linéaire, offrant un contrôle plus précis et intuitif, notamment à faible vitesse.
 - **Équilibrage Itératif** : Plusieurs cycles d'ajustement ont été nécessaires pour équilibrer la force, la vitesse et la réactivité du vent, en collaboration directe avec l'utilisateur pour atteindre la "sensation" de jeu désirée.
 
+### 2.5. Débogage et Amélioration de l'Expérience de Test
+
+Suite à une interruption de session qui a corrompu l'état du code, une session de débogage a été nécessaire.
+
+- **Correction de Bug Visuel Majeur** : Résolution d'un bug qui empêchait le rendu de tous les éléments visuels du jeu (grille, vent, horde). Le problème a été identifié comme étant la mise en commentaire de la fonction `updateWind`, ce qui bloquait l'intégralité de la boucle de mise à jour et de rendu.
+- **Réactivation de la Simulation du Vent** : La fonction `updateWind` a été restaurée, réactivant ainsi la simulation dynamique du vent.
+- **Contrôle de l'Effet Venturi** : Suite à la demande de l'utilisateur, une case à cocher a été ajoutée à l'interface de débogage pour permettre d'activer ou de désactiver l'effet Venturi à la volée. Cela permet de mieux isoler et tester l'impact de cette mécanique sur le gameplay.
+
 **Prochaine Étape** : Développer des "Personnalités" de vent distinctes (ex: rafales soudaines, vents tournants, zones de silence) en se basant sur le nouveau système dynamique.
