@@ -21,42 +21,42 @@
         <div id="debugControls">
             <div>
                 <label for="windSpeedSlider">Amplificateur Vent:</label>
-                <input type="range" id="windSpeedSlider" min="0" max="100" value="45" step="1">
+                <input type="range" id="windSpeedSlider" min="0" max="100" value="45" step="1" title="Multiplicateur global de la force du vent. Affecte la puissance de toutes les sources de vent.">
                 <span id="windSpeedValue">1.01</span>
             </div>
             <div>
                 <label for="windSourceScaleSlider">Échelle Masse:</label>
-                <input type="range" id="windSourceScaleSlider" min="1" max="50" value="10" step="1">
+                <input type="range" id="windSourceScaleSlider" min="1" max="50" value="10" step="1" title="Contrôle la taille et la variation des zones de vent. Une petite valeur crée des rafales chaotiques, une grande valeur crée des nappes de vent uniformes.">
                 <span id="windSourceScaleValue">10</span>
             </div>
             <div>
                 <label for="maxMasseSlider">Masse Max:</label>
-                <input type="range" id="maxMasseSlider" min="0.1" max="3" value="1.2" step="0.1">
+                <input type="range" id="maxMasseSlider" min="0.1" max="3" value="1.2" step="0.1" title="Définit la force brute maximale du vent à sa source.">
                 <span id="maxMasseValue">1.2</span>
             </div>
             <div>
                 <label for="minCeleriteSlider">Célérité Min:</label>
-                <input type="range" id="minCeleriteSlider" min="0" max="1" value="0.1" step="0.05">
+                <input type="range" id="minCeleriteSlider" min="0" max="1" value="0.1" step="0.05" title="Vitesse du vent lorsque sa masse est maximale. Un vent très fort est plus lent.">
                 <span id="minCeleriteValue">0.1</span>
             </div>
             <div>
                 <label for="maxCeleriteSlider">Célérité Max:</label>
-                <input type="range" id="maxCeleriteSlider" min="0.1" max="2" value="1.0" step="0.05">
+                <input type="range" id="maxCeleriteSlider" min="0.1" max="2" value="1.0" step="0.05" title="Vitesse du vent lorsque sa masse est nulle. Un vent léger est plus rapide.">
                 <span id="maxCeleriteValue">1.0</span>
             </div>
             <div>
                 <label for="dissipationSlider">Dissipation Relief:</label>
-                <input type="range" id="dissipationSlider" min="0" max="1" value="0.25" step="0.05">
+                <input type="range" id="dissipationSlider" min="0" max="1" value="0.25" step="0.05" title="Contrôle à quel point le relief (altitude des cellules) freine et dissipe le vent.">
                 <span id="dissipationValue">0.25</span>
             </div>
             <div>
                 <label for="fadingSlider">Estompage:</label>
-                <input type="range" id="fadingSlider" min="0.95" max="1" value="0.99" step="0.001">
+                <input type="range" id="fadingSlider" min="0.95" max="1" value="0.99" step="0.001" title="Vitesse à laquelle le vent perd de sa force naturellement avec le temps et la distance.">
                 <span id="fadingValue">0.990</span>
             </div>
             <div>
                 <label for="venturiEffectCheckbox">Activer Venturi:</label>
-                <input type="checkbox" id="venturiEffectCheckbox" checked>
+                <input type="checkbox" id="venturiEffectCheckbox" checked title="Active ou désactive l'effet Venturi, qui accélère le vent lorsqu'il passe entre des cellules de haute altitude.">
             </div>
         </div>
         <div id="formationControls">
