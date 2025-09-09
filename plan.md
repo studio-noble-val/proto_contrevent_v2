@@ -51,10 +51,13 @@ Développer un prototype de jeu de survie tactique en 2D, jouable via un navigat
 - **Amélioration de l'UX :** Ajout d'infobulles explicatives (`tooltips`) sur chaque slider de l'interface de débogage pour clarifier leur fonction.
 - **Landing Page :** Création d'une page d'accueil (`index.html`) et déplacement du jeu sur `game.html`.
 
-### Phase 10: Conditions de Victoire et d'Échec (À venir)
-- **Condition de Victoire :** Implémenter un "drapeau" à atteindre en amont de la carte. La victoire est déclenchée lorsque toute la Horde occupe les cellules adjacentes.
-- **Message de Victoire :** Afficher une fenêtre de félicitations.
-- **Condition d'Échec/Abandon :** Ajouter un bouton "It's Too Hard" pour quitter la partie et retourner à la page d'accueil.
+### Phase 10: Conditions de Victoire et d'Échec (Terminée)
+- **Condition de Victoire :** Implémentation d'un drapeau de victoire sur la carte. La partie est gagnée lorsque tous les membres de la Horde sont à proximité du drapeau.
+    - Création d'un module `gameplay.js` pour gérer la logique de jeu.
+    - Ajout d'une fonction pour dessiner le drapeau.
+    - Ajout d'une fonction pour vérifier la condition de victoire à chaque frame.
+- **Message de Victoire :** Affichage d'une alerte et redirection vers la page d'accueil.
+- **Condition d'Échec/Abandon :** Ajout d'un bouton "It's Too Hard" pour quitter la partie et retourner à la page d'accueil.
 
 ### Phase 11: Systèmes de Progression (À venir)
 - **Score :** Concevoir et implémenter un système de score pour évaluer la performance du joueur.

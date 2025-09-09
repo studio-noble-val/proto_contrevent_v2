@@ -87,3 +87,17 @@ Les développements futurs se concentreront sur l'ajout de boucles de gameplay, 
 ### 4.3. Interface et Expérience Utilisateur
 - **Refonte de l'UI :** Corriger les problèmes de style et améliorer le design global de l'interface de jeu.
 - **Système de Cartes :** Développer le système de création, sauvegarde et chargement de cartes, comme initialement prévu.
+
+## 5. Feuille de Route (Version 0.3 - En cours)
+
+Cette version se concentre sur l'implémentation des boucles de gameplay de base.
+
+### 5.1. Implémentation de la Boucle de Gameplay Principale
+- **Modularisation de la logique de jeu** : Création d'un nouveau module `gameplay.js` pour héberger la logique de victoire, d'échec et les autres règles du jeu.
+- **Condition de Victoire** :
+    - Un drapeau est ajouté sur la carte comme objectif.
+    - Une fonction vérifie en continu si tous les membres de la Horde sont suffisamment proches du drapeau.
+    - En cas de victoire, un message est affiché et le joueur est redirigé vers la page d'accueil.
+- **Condition d'Abandon** :
+    - Un bouton "It's Too Hard" a été ajouté à l'interface.
+    - Un clic sur ce bouton après confirmation redirige le joueur vers la page d'accueil.

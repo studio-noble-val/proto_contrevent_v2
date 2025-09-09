@@ -124,6 +124,12 @@ function setupEventListeners() {
         document.getElementById("pauseIndicator").style.display = state.gamePaused ? "block" : "none";
     });
     document.querySelectorAll(".formationButton").forEach(b => b.addEventListener("click", e => setFormation(e.target.dataset.formation)));
+
+    document.getElementById("giveUpButton").addEventListener("click", () => {
+        if (confirm("Êtes-vous sûr de vouloir abandonner ?")) {
+            window.location.href = 'index.html';
+        }
+    });
 }
 
 export function drawSelectionRect() {
