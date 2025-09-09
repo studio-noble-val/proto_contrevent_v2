@@ -68,6 +68,7 @@ Développer un prototype de jeu de survie tactique en 2D, jouable via un navigat
         - Ajout d'une barre en haut de l'écran pour afficher le temps et le score en temps réel.
         - Ajout d'une infobulle pour expliquer le calcul du score.
         - Ajout d'un gizmo visuel (cercle bleu en pointillés) pour matérialiser la zone de victoire.
+        - Ajout d'un slider de debug pour ajuster la taille de la zone de victoire.
 - **Niveaux (À venir) :** Mettre en place un système de "level up" après une victoire.
 
 ### Phase 12: Statistiques et Équipement des Personnages (À venir)

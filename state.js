@@ -10,6 +10,7 @@ export const state = {
     startTime: 0,
     score: 0,
     venturiEnabled: true,
+    victoryZoneSize: 2,
     windParams: {},
     selectionRect: { startX: 0, startY: 0, currentX: 0, currentY: 0 },
 };

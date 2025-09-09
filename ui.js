@@ -13,14 +13,14 @@ export function init(canvasElement) {
 
 function setupEventListeners() {
     // --- Helper pour initialiser les sliders ---
-    function setupSlider(sliderId, valueSpanId, paramsKey, isFloat = true, decimals = 2) {
+    function setupSlider(sliderId, valueSpanId, targetState, paramsKey, isFloat = true, decimals = 2) {
         const slider = document.getElementById(sliderId);
         const span = document.getElementById(valueSpanId);
         if (!slider || !span) return;
 
         const update = (value) => {
             const numValue = isFloat ? parseFloat(value) : parseInt(value);
-            state.windParams[paramsKey] = numValue;
+            targetState[paramsKey] = numValue;
             span.textContent = numValue.toFixed(decimals);
         };
 
@@ -29,12 +29,15 @@ function setupEventListeners() {
     }
 
     // --- Sliders de contrôle du vent ---
-    setupSlider("windSourceScaleSlider", "windSourceScaleValue", "sourceScale", false, 0);
-    setupSlider("maxMasseSlider", "maxMasseValue", "maxMasse", true, 1);
-    setupSlider("minCeleriteSlider", "minCeleriteValue", "minCelerite", true, 2);
-    setupSlider("maxCeleriteSlider", "maxCeleriteValue", "maxCelerite", true, 2);
-    setupSlider("dissipationSlider", "dissipationValue", "dissipation", true, 2);
-    setupSlider("fadingSlider", "fadingValue", "fading", true, 3);
+    setupSlider("windSourceScaleSlider", "windSourceScaleValue", state.windParams, "sourceScale", false, 0);
+    setupSlider("maxMasseSlider", "maxMasseValue", state.windParams, "maxMasse", true, 1);
+    setupSlider("minCeleriteSlider", "minCeleriteValue", state.windParams, "minCelerite", true, 2);
+    setupSlider("maxCeleriteSlider", "maxCeleriteValue", state.windParams, "maxCelerite", true, 2);
+    setupSlider("dissipationSlider", "dissipationValue", state.windParams, "dissipation", true, 2);
+    setupSlider("fadingSlider", "fadingValue", state.windParams, "fading", true, 3);
+
+    // --- Slider de zone de victoire ---
+    setupSlider("victoryZoneSlider", "victoryZoneValue", state, "victoryZoneSize", true, 1);
 
 
     const windSlider = document.getElementById('windSpeedSlider');

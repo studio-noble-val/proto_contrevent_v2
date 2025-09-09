@@ -112,3 +112,4 @@ Cette version se concentre sur l'implémentation des boucles de gameplay de base
         - Elle affiche le temps écoulé et le score qui diminue en temps réel.
         - Une infobulle (`title`) explique le mode de calcul du score.
         - La zone de victoire est maintenant matérialisée par un cercle bleu en pointillés pour une meilleure visibilité.
+        - Un slider a été ajouté dans les contrôles de débogage pour permettre de modifier la taille de la zone de victoire.

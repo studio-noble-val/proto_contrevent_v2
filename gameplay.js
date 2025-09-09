@@ -19,7 +19,7 @@ export function drawVictoryFlag() {
     if (!state.victoryFlag) return;
 
     const { x, y, size } = state.victoryFlag;
-    const victoryRadius = size * 2;
+    const victoryRadius = size * state.victoryZoneSize;
 
     ctx.save();
 
@@ -56,7 +56,7 @@ export function checkVictoryCondition() {
     const allMembersNearFlag = state.horde.every(member => {
         const dx = member.x - state.victoryFlag.x;
         const dy = member.y - state.victoryFlag.y;
-        return Math.sqrt(dx * dx + dy * dy) < state.victoryFlag.size * 2;
+        return Math.sqrt(dx * dx + dy * dy) < state.victoryFlag.size * state.victoryZoneSize;
     });
 
     if (allMembersNearFlag) {
