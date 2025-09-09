@@ -64,13 +64,32 @@ export function checkVictoryCondition() {
         state.gamePaused = true;
 
         const elapsedTime = Math.round((performance.now() - state.startTime) / 1000);
+        const minutes = Math.floor(elapsedTime / 60).toString().padStart(2, '0');
+        const seconds = (elapsedTime % 60).toString().padStart(2, '0');
+        
         state.score = Math.max(10000 - elapsedTime * 10, 0);
 
-        // Wait a bit before showing the alert to let the player see the last frame
-        setTimeout(() => {
-            alert(`VICTOIRE ! Vous avez atteint l'Extrême-Amont !\n\nTemps : ${elapsedTime}s\nScore : ${state.score}`);
-            // here we could redirect to a victory screen or reset the game
+        // Show victory screen
+        const victoryScreen = document.getElementById('victory-screen');
+        document.getElementById('victory-time').textContent = `${minutes}:${seconds}`;
+        document.getElementById('victory-score').textContent = state.score;
+        
+        // Placeholder for narrative text
+        const narrativeTexts = [
+            "La 34ème Horde a bravé les courants contraires. Le Scribe Sov note notre passage.",
+            "Le vent a hurlé, mais la volonté de la Horde fut plus forte. Nous avançons.",
+            "Une autre étape de franchie. Les visages sont marqués par la fatigue, mais la lueur de l'Extrême-Amont nous guide."
+        ];
+        document.getElementById('victory-narrative').textContent = narrativeTexts[Math.floor(Math.random() * narrativeTexts.length)];
+
+        victoryScreen.style.display = 'flex';
+
+        document.getElementById('continue-button').onclick = () => {
+            // For now, reloads the page to simulate a new level
+            window.location.reload();
+        };
+        document.getElementById('main-menu-button').onclick = () => {
             window.location.href = 'index.html';
-        }, 100);
+        };
     }
 }

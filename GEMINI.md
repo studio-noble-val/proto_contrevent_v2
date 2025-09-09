@@ -103,13 +103,7 @@ Cette version se concentre sur l'implémentation des boucles de gameplay de base
     - Un clic sur ce bouton après confirmation redirige le joueur vers la page d'accueil.
 
 ### 5.2. Implémentation des Systèmes de Progression
-- **Système de Score :**
-    - Un score basé sur le temps est en cours d'implémentation.
-    - L'état du jeu (`state.js`) est étendu pour inclure `startTime` et `score`.
-    - Le calcul est effectué dans `gameplay.js` et le résultat affiché à la victoire.
-    - **Amélioration de l'UI :**
-        - Une barre d'information a été ajoutée en haut de l'écran.
-        - Elle affiche le temps écoulé et le score qui diminue en temps réel.
-        - Une infobulle (`title`) explique le mode de calcul du score.
-        - La zone de victoire est maintenant matérialisée par un cercle bleu en pointillés pour une meilleure visibilité.
-        - Un slider a été ajouté dans les contrôles de débogage pour permettre de modifier la taille de la zone de victoire.
+- **Système de Score et de Fin de Niveau :**
+    - L'alerte de victoire a été remplacée par un écran de fin de niveau plus immersif.
+    - Cet écran affiche un titre, un texte narratif tiré d'une liste (simulant le journal du Scribe), le temps final et le score.
+    - Il offre au joueur le choix de continuer vers l'étape suivante (en rechargeant la page pour le prototype) ou de retourner au menu principal.
