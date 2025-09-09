@@ -181,3 +181,21 @@ function showHexInspector(x, y) {
     popup.style.top = `${y + 15}px`;
     popup.style.display = 'block';
 }
+
+export function updateTopBar() {
+    if (!state.startTime) return;
+
+    const timeDisplay = document.getElementById('time-display');
+    const scoreDisplay = document.getElementById('score-display');
+
+    if (!timeDisplay || !scoreDisplay) return;
+
+    const elapsedTime = Math.round((performance.now() - state.startTime) / 1000);
+    const minutes = Math.floor(elapsedTime / 60).toString().padStart(2, '0');
+    const seconds = (elapsedTime % 60).toString().padStart(2, '0');
+
+    timeDisplay.textContent = `${minutes}:${seconds}`;
+
+    const currentScore = Math.max(10000 - elapsedTime * 10, 0);
+    scoreDisplay.textContent = currentScore;
+}

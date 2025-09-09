@@ -9,6 +9,7 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 function init() {
+    state.startTime = performance.now();
     grid.init(canvas, ctx);
     horde.init(canvas, ctx);
     ui.init(canvas);
@@ -44,6 +45,7 @@ function update() {
     horde.resolveCollisions();
     wind.applyWindEffects();
     ui.updateStats();
+    ui.updateTopBar();
     gameplay.checkVictoryCondition();
 }
 

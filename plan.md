@@ -59,9 +59,16 @@ Développer un prototype de jeu de survie tactique en 2D, jouable via un navigat
 - **Message de Victoire :** Affichage d'une alerte et redirection vers la page d'accueil.
 - **Condition d'Échec/Abandon :** Ajout d'un bouton "It's Too Hard" pour quitter la partie et retourner à la page d'accueil.
 
-### Phase 11: Systèmes de Progression (À venir)
-- **Score :** Concevoir et implémenter un système de score pour évaluer la performance du joueur.
-- **Niveaux :** Mettre en place un système de "level up" après une victoire.
+### Phase 11: Systèmes de Progression (En cours)
+- **Score :** Conception et implémentation d'un système de score basé sur le temps.
+    - Ajout de `startTime` et `score` à l'état du jeu.
+    - Le score est calculé à la victoire (`MaxScore - temps`).
+    - Le score est affiché dans le message de victoire.
+    - **UI/UX :**
+        - Ajout d'une barre en haut de l'écran pour afficher le temps et le score en temps réel.
+        - Ajout d'une infobulle pour expliquer le calcul du score.
+        - Ajout d'un gizmo visuel (cercle bleu en pointillés) pour matérialiser la zone de victoire.
+- **Niveaux (À venir) :** Mettre en place un système de "level up" après une victoire.
 
 ### Phase 12: Statistiques et Équipement des Personnages (À venir)
 - **Statistiques de Base :** Définir et intégrer les caractéristiques des personnages (force, endurance, charisme).

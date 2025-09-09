@@ -101,3 +101,14 @@ Cette version se concentre sur l'implémentation des boucles de gameplay de base
 - **Condition d'Abandon** :
     - Un bouton "It's Too Hard" a été ajouté à l'interface.
     - Un clic sur ce bouton après confirmation redirige le joueur vers la page d'accueil.
+
+### 5.2. Implémentation des Systèmes de Progression
+- **Système de Score :**
+    - Un score basé sur le temps est en cours d'implémentation.
+    - L'état du jeu (`state.js`) est étendu pour inclure `startTime` et `score`.
+    - Le calcul est effectué dans `gameplay.js` et le résultat affiché à la victoire.
+    - **Amélioration de l'UI :**
+        - Une barre d'information a été ajoutée en haut de l'écran.
+        - Elle affiche le temps écoulé et le score qui diminue en temps réel.
+        - Une infobulle (`title`) explique le mode de calcul du score.
+        - La zone de victoire est maintenant matérialisée par un cercle bleu en pointillés pour une meilleure visibilité.

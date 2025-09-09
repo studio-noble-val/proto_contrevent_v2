@@ -7,6 +7,8 @@ export const state = {
     globalWindMultiplier: 1.0,
     isDragging: false,
     time: 0,
+    startTime: 0,
+    score: 0,
     venturiEnabled: true,
     windParams: {},
     selectionRect: { startX: 0, startY: 0, currentX: 0, currentY: 0 },
