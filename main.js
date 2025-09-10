@@ -50,6 +50,7 @@ function update() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     grid.drawGrid();
+    horde.drawShadows(); // Draw shadows under the horde
     horde.drawHorde();
     gameplay.drawVictoryFlag();
     if (state.isDragging) {

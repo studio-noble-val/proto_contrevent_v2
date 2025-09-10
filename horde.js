@@ -62,6 +62,91 @@ export function drawHorde() {
     });
 }
 
+// NEW --- Function to draw the wind shadows
+export function drawShadows() {
+    state.horde.forEach(caster => {
+        const hexCoords = pixelToHex(caster.x, caster.y);
+        if (hexCoords.r < 0 || hexCoords.r >= state.grid.length || hexCoords.c < 0 || hexCoords.c >= state.grid[0].length) {
+            return;
+        }
+        const wind = state.grid[hexCoords.r][hexCoords.c].wind;
+        if (wind.masse <= 0.02) return; // Use a small threshold like the grid wind display
+
+        const shadowLength = caster.strength * 1.5;
+        // The cone's angle now varies more noticeably with endurance.
+        const shadowAngle = (caster.endurance / 100) * (Math.PI / 4); // Base angle is now 45 degrees
+        const protection = caster.strength / 200;
+
+        // Increased opacity for better visibility.
+        ctx.fillStyle = `rgba(20, 20, 20, ${protection * 0.6})`; 
+
+        const p1 = { x: caster.x, y: caster.y };
+        const p2 = {
+            x: caster.x + shadowLength * Math.cos(wind.direction - shadowAngle / 2),
+            y: caster.y + shadowLength * Math.sin(wind.direction - shadowAngle / 2)
+        };
+        const p3 = {
+            x: caster.x + shadowLength * Math.cos(wind.direction + shadowAngle / 2),
+            y: caster.y + shadowLength * Math.sin(wind.direction + shadowAngle / 2)
+        };
+
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.lineTo(p3.x, p3.y);
+        ctx.closePath();
+        ctx.fill();
+    });
+}
+
+
+// NEW --- Helper to calculate the cumulative wind protection factor for a character
+function getWindProtectionFactor(target) {
+    let cumulativeProtection = 1.0; // 1.0 means no protection
+
+    const targetHex = pixelToHex(target.x, target.y);
+    if (targetHex.r < 0 || targetHex.r >= state.grid.length || targetHex.c < 0 || targetHex.c >= state.grid[0].length) {
+        return 1.0;
+    }
+
+    state.horde.forEach(caster => {
+        if (caster.id === target.id) return; // A character doesn't protect itself
+
+        const casterHex = pixelToHex(caster.x, caster.y);
+        if (casterHex.r < 0 || casterHex.r >= state.grid.length || casterHex.c < 0 || casterHex.c >= state.grid[0].length) {
+            return;
+        }
+        const wind = state.grid[casterHex.r][casterHex.c].wind;
+        if (wind.masse <= 0) return;
+
+        const shadowLength = caster.strength * 1.5;
+        const shadowAngle = (caster.endurance / 100) * (Math.PI / 6);
+        
+        const dx = target.x - caster.x;
+        const dy = target.y - caster.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist > shadowLength) return; // Target is too far
+
+        const angleToTarget = Math.atan2(dy, dx);
+        let angleDifference = Math.abs(wind.direction - angleToTarget);
+        
+        // Normalize angle difference to be within [0, PI]
+        if (angleDifference > Math.PI) {
+            angleDifference = 2 * Math.PI - angleDifference;
+        }
+
+        if (angleDifference <= shadowAngle / 2) {
+            // Target is inside the cone
+            const protectionFactor = 1 - (caster.strength / 200); // Max 50%
+            cumulativeProtection *= protectionFactor;
+        }
+    });
+
+    return cumulativeProtection;
+}
+
+
 export function moveHorde() {
     state.horde.forEach(p => {
         const hexCoords = pixelToHex(p.x, p.y);
@@ -70,9 +155,14 @@ export function moveHorde() {
             const wind = state.grid[hexCoords.r][hexCoords.c].wind;
             if (wind.masse > 0) {
                 const moveAngle = Math.atan2(p.target.y - p.y, p.target.x - p.x);
-                // Strength (0-100) reduces the effect of wind mass.
+                
+                // Base resistance from character's own strength
                 const effectiveWindMass = Math.max(0, wind.masse * (1 - p.strength / 125));
-                windResistance = Math.max(0, -Math.cos(moveAngle - wind.direction)) * effectiveWindMass;
+                let baseResistance = Math.max(0, -Math.cos(moveAngle - wind.direction)) * effectiveWindMass;
+
+                // Apply protection from horde members' shadows
+                const protectionFactor = getWindProtectionFactor(p);
+                windResistance = baseResistance * protectionFactor;
             }
         }
         p.currentSpeed = p.baseSpeed * (1 - windResistance);
