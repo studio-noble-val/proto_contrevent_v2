@@ -59,10 +59,12 @@ export function drawGrid() {
 }
 
 function getColorForRelief(relief) {
-    if (relief < 0.3) return `rgb(70, 130, 180)`;
-    if (relief < 0.5) return `rgb(34, 139, 34)`;
-    if (relief < 0.7) return `rgb(139, 69, 19)`;
-    return `rgb(160, 82, 45)`;
+    const colors = [
+        '#4682B4', '#5F9EA0', '#9ACD32', '#6B8E23', '#556B2F', 
+        '#CDA752', '#B8860B', '#A0522D', '#8B4513', '#696969', '#FFFFFF'
+    ];
+    const index = Math.round(relief * 10);
+    return colors[index] || colors[10];
 }
 
 function drawHexagon(x, y, cell) {
