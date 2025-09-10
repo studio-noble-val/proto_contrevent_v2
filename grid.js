@@ -1,6 +1,7 @@
 import { state } from './state.js';
 import { HEX_WIDTH, HEX_HEIGHT, GRID_HORIZ_SPACING, GRID_VERT_SPACING, HEX_SIZE } from './constants.js';
 import { PerlinNoise } from './perlin.js';
+import { pixelToOffset } from './grid-utils.js';
 
 let canvas, ctx;
 
@@ -75,26 +76,5 @@ function drawHexagon(x, y, cell) {
     ctx.stroke();
 }
 
-export function pixelToHex(x, y) {
-    const adjustedX = x - HEX_WIDTH / 2;
-    const adjustedY = y - HEX_HEIGHT / 2;
-    const q = (Math.sqrt(3) / 3 * adjustedX - 1 / 3 * adjustedY) / HEX_SIZE;
-    const r = 2 / 3 * adjustedY / HEX_SIZE;
-    const cubeX = q;
-    const cubeZ = r;
-    const cubeY = -cubeX - cubeZ;
-    let rx = Math.round(cubeX);
-    let ry = Math.round(cubeY);
-    let rz = Math.round(cubeZ);
-    const x_diff = Math.abs(rx - cubeX);
-    const y_diff = Math.abs(ry - cubeY);
-    const z_diff = Math.abs(rz - cubeZ);
-    if (x_diff > y_diff && x_diff > z_diff) {
-        rx = -ry - rz;
-    } else if (y_diff > z_diff) {
-        ry = -rx - rz;
-    } else {
-        rz = -rx - ry;
-    }
-    return { r: rz, c: rx + (rz - (rz & 1)) / 2 };
-}
+// This function is now imported from grid-utils.js and renamed to pixelToOffset
+export { pixelToOffset as pixelToHex };
