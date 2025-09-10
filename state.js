@@ -3,6 +3,7 @@ export const state = {
     horde: [],
     spawnPoint: null,
     flagPosition: null,
+    windSources: null,
     currentMap: null,
     activeFormation: 'none',
     targetDestination: null,

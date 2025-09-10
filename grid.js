@@ -10,16 +10,23 @@ export function init(canvasElement, context) {
     ctx = context;
 }
 
-export function initGrid(reliefGrid) {
+export function initGrid(reliefGrid, windSources) {
     if (reliefGrid) {
         state.grid = reliefGrid.map(row => 
             row.map(relief => ({ relief, wind: { masse: 0, celerite: 0, direction: Math.PI, propagationProgress: 0 }, isSource: false }))
         );
-        // This part is tricky, how to set sources on a custom map?
-        // For now, let's keep it simple and set it on the last column for some rows.
-        const gridCols = state.grid[0].length;
-        for (let r = 0; r < state.grid.length; r++) {
-            if (r % 4 === 0) state.grid[r][gridCols - 1].isSource = true;
+        if (windSources && windSources.length > 0) {
+            windSources.forEach(source => {
+                if (state.grid[source.r] && state.grid[source.r][source.c]) {
+                    state.grid[source.r][source.c].isSource = true;
+                }
+            });
+        } else {
+            // Fallback to old hardcoded sources if none provided in map
+            const gridCols = state.grid[0].length;
+            for (let r = 0; r < state.grid.length; r++) {
+                if (r % 4 === 0) state.grid[r][gridCols - 1].isSource = true;
+            }
         }
     } else {
         const gridCols = Math.ceil(canvas.width / GRID_HORIZ_SPACING) + 2;
@@ -33,6 +40,7 @@ export function initGrid(reliefGrid) {
                 state.grid[r][c] = { relief, wind: { masse: 0, celerite: 0, direction: Math.PI, propagationProgress: 0 }, isSource: false };
             }
         }
+        // Default procedural sources
         for (let r = 0; r < gridRows; r++) {
             if (r % 4 === 0) state.grid[r][gridCols - 1].isSource = true;
         }

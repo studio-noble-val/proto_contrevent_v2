@@ -4,6 +4,7 @@ import * as horde from './horde.js';
 import * as wind from './wind.js';
 import * as ui from './ui.js';
 import * as gameplay from './gameplay.js';
+import * as camera from './camera.js';
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -14,6 +15,7 @@ async function loadMap(mapUrl) {
         state.grid = null; 
         state.spawnPoint = null;
         state.flagPosition = null;
+        state.windSources = [];
         return;
     }
 
@@ -29,10 +31,12 @@ async function loadMap(mapUrl) {
             state.grid = data;
             state.spawnPoint = null;
             state.flagPosition = null;
+            state.windSources = [];
         } else {
             state.grid = data.relief;
             state.spawnPoint = data.spawnPoint || null;
             state.flagPosition = data.flagPosition || null;
+            state.windSources = data.windSources || [];
         }
 
     } catch (e) {
@@ -41,6 +45,7 @@ async function loadMap(mapUrl) {
         state.grid = null; 
         state.spawnPoint = null;
         state.flagPosition = null;
+        state.windSources = [];
     }
 }
 
@@ -58,7 +63,7 @@ async function init() {
     } else if (mode === 'survie') {
         // Survival mode: trigger procedural generation
         state.currentMap = 'procedural-survival';
-        await loadMap(null); // Passing null will trigger the catch block for procedural fallback
+        await loadMap(null); // Passing null will trigger the procedural path
     } else {
         // Default behavior: load a default map
         state.currentMap = 'default.json';
@@ -69,7 +74,9 @@ async function init() {
     grid.init(canvas, ctx);
     horde.init(canvas, ctx);
     ui.init(canvas);
-    
+    gameplay.init(canvas, ctx, state.flagPosition);
+    camera.init(canvas, ctx);
+
     resizeCanvas(); // This will call initGrid, initHorde, etc.
     
     gameLoop();
@@ -79,9 +86,8 @@ function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     // Initialize systems with map data
-    grid.initGrid(state.grid);
+    grid.initGrid(state.grid, state.windSources);
     horde.initHorde(state.spawnPoint);
-    gameplay.init(canvas, ctx, state.flagPosition);
 }
 
 window.addEventListener('resize', resizeCanvas);
@@ -106,6 +112,9 @@ function update() {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    camera.applyTransform(ctx);
+
     grid.drawGrid();
     horde.drawShadows();
     horde.drawHorde();
@@ -113,6 +122,48 @@ function draw() {
     if (state.isDragging) {
         ui.drawSelectionRect();
     }
+    ctx.restore();
 }
+
+// Mouse input for horde selection and movement
+canvas.addEventListener('mousedown', e => {
+    if (e.button === 0) { // Left click
+        const worldCoords = camera.getTransformedCoords(e.clientX, e.clientY);
+        const clickedChar = horde.getCharacterAt(worldCoords.x, worldCoords.y);
+        if (clickedChar) {
+            if (e.shiftKey) {
+                clickedChar.isSelected = !clickedChar.isSelected;
+            } else {
+                state.horde.forEach(p => p.isSelected = false);
+                clickedChar.isSelected = true;
+            }
+        } else {
+            state.isDragging = true;
+            ui.setSelectionRectStart(e.clientX, e.clientY);
+        }
+    } else if (e.button === 2) { // Right click
+        const worldCoords = camera.getTransformedCoords(e.clientX, e.clientY);
+        horde.setGroupTarget(worldCoords);
+    }
+});
+
+canvas.addEventListener('mousemove', e => {
+    if (state.isDragging) {
+        ui.setSelectionRectCurrent(e.clientX, e.clientY);
+    }
+});
+
+canvas.addEventListener('mouseup', e => {
+    if (state.isDragging) {
+        const rect = ui.getSelectionRect();
+        const worldStart = camera.getTransformedCoords(rect.startX, rect.startY);
+        const worldEnd = camera.getTransformedCoords(rect.currentX, rect.currentY);
+        ui.selectHordeInRect(worldStart, worldEnd);
+        state.isDragging = false;
+    }
+});
+
+// Prevent context menu on right click
+canvas.addEventListener('contextmenu', e => e.preventDefault());
 
 init();

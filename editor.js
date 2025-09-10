@@ -26,6 +26,7 @@ const state = {
     cameraOffset: { x: 0, y: 0 },
     spawnPoint: null,
     flagPosition: null,
+    windSources: [],
     mapName: 'Nouvelle Carte',
     mapOrder: 1,
 };
@@ -171,7 +172,7 @@ function setupEventListeners() {
 function slugify(text) {
     return text.toString().toLowerCase()
         .replace(/\s+/g, '_')           // Replace spaces with _
-        .replace(/[\u0300-\u036f]/g, '') // remove accents
+        .replace(/[̀-ͯ]/g, '') // remove accents
         .replace(/[^ -ɏḀ-ỿⱠ-Ɀ꜠-ꟿ]/g, '') // remove non-alphanumeric chars
         .replace(/&/g, '-and-')         // replace & with '-and-'
         .replace(/[^ -ɏḀ-ỿⱠ-Ɀ꜠-ꟿ_]/g, '') // remove special chars
@@ -188,6 +189,7 @@ function saveMap() {
         relief: state.grid.map(row => row.map(cell => parseFloat(cell.relief.toFixed(3)))),
         spawnPoint: state.spawnPoint,
         flagPosition: state.flagPosition,
+        windSources: state.windSources,
     };
     const filename = slugify(state.mapName) + '.json';
     const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: 'application/json' });
@@ -217,12 +219,14 @@ function loadMapFromFile() {
                     reliefGrid = data;
                     state.spawnPoint = null;
                     state.flagPosition = null;
+                    state.windSources = [];
                     state.mapName = 'Carte importée';
                     state.mapOrder = 99;
                 } else { // New format
                     reliefGrid = data.relief;
                     state.spawnPoint = data.spawnPoint || null;
                     state.flagPosition = data.flagPosition || null;
+                    state.windSources = data.windSources || [];
                     state.mapName = data.name || 'Carte sans nom';
                     state.mapOrder = data.order || 99;
                 }
@@ -232,7 +236,7 @@ function loadMapFromFile() {
                 }
                 state.grid = reliefGrid.map(row => row.map(relief => ({ relief })) );
                 mapRowsInput.value = state.grid.length;
-                mapColsInput.vsalue = state.grid[0].length;
+                mapColsInput.value = state.grid[0].length;
                 mapNameInput.value = state.mapName;
                 mapOrderInput.value = state.mapOrder;
                 drawGrid();
@@ -266,6 +270,14 @@ function handleCanvasClick(e) {
             break;
         case 'setFlag':
             state.flagPosition = clickedHex;
+            break;
+        case 'setWindSource':
+            const existingSourceIndex = state.windSources.findIndex(s => s.r === clickedHex.r && s.c === clickedHex.c);
+            if (existingSourceIndex !== -1) {
+                state.windSources.splice(existingSourceIndex, 1); // Remove if exists
+            } else {
+                state.windSources.push(clickedHex); // Add if not exists
+            }
             break;
     }
     drawGrid();
@@ -304,6 +316,7 @@ function createNewGrid(rows, cols) {
     state.grid = [];
     state.spawnPoint = null;
     state.flagPosition = null;
+    state.windSources = [];
     for (let r = 0; r < rows; r++) {
         state.grid[r] = [];
         for (let c = 0; c < cols; c++) {
@@ -344,6 +357,12 @@ function drawGrid() {
         const y = state.flagPosition.r * GRID_VERT_SPACING;
         drawFlagMarker(x + HEX_WIDTH / 2, y + HEX_HEIGHT / 2);
     }
+    state.windSources.forEach(source => {
+        const offset = (source.r % 2) * (GRID_HORIZ_SPACING / 2);
+        const x = source.c * GRID_HORIZ_SPACING + offset;
+        const y = source.r * GRID_VERT_SPACING;
+        drawWindSourceMarker(x + HEX_WIDTH / 2, y + HEX_HEIGHT / 2);
+    });
 
     ctx.restore();
 }
@@ -390,6 +409,29 @@ function drawFlagMarker(x, y) {
     ctx.fill();
     ctx.strokeStyle = '#FFFFFF';
     ctx.lineWidth = 2 / state.zoomLevel;
+    ctx.stroke();
+}
+
+function drawWindSourceMarker(x, y) {
+    ctx.beginPath();
+    ctx.arc(x, y, BASE_HEX_SIZE / 3, 0, 2 * Math.PI);
+    ctx.fillStyle = 'rgba(255, 255, 0, 0.7)'; // Yellow
+    ctx.fill();
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 1.5 / state.zoomLevel;
+    ctx.stroke();
+
+    // Draw an arrow to indicate wind direction (right to left)
+    const arrowLength = BASE_HEX_SIZE / 2;
+    const arrowHeadSize = BASE_HEX_SIZE / 8;
+    ctx.beginPath();
+    ctx.moveTo(x + arrowLength / 2, y);
+    ctx.lineTo(x - arrowLength / 2, y);
+    ctx.lineTo(x - arrowLength / 2 + arrowHeadSize, y - arrowHeadSize);
+    ctx.moveTo(x - arrowLength / 2, y);
+    ctx.lineTo(x - arrowLength / 2 + arrowHeadSize, y + arrowHeadSize);
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 1.5 / state.zoomLevel;
     ctx.stroke();
 }
 
