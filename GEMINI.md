@@ -175,3 +175,23 @@ L'objectif était de créer un éditeur de carte fonctionnel et ergonomique pour
 ### 6.3. Amélioration des Outils
 - **Couleurs du Relief :** La palette de couleurs a été étendue à 11 teintes pour mieux représenter les différents niveaux d'altitude.
 - **Ajustement de l'Intensité :** Le slider d'intensité pour les outils de sculpture a été modifié pour proposer 5 niveaux de puissance prédéfinis et plus fins, offrant un meilleur contrôle.
+
+### 6.4. Ajout des Éléments de Jeu (Spawn et Drapeau)
+- **Positionnement :** Ajout de la possibilité de placer le point de départ de la horde (Spawn) et l'objectif (Drapeau) directement sur la carte via de nouveaux outils dans l'éditeur.
+- **Visualisation :** Les positions du Spawn et du Drapeau sont désormais clairement indiquées sur la carte de l'éditeur par des marqueurs visuels.
+- **Sauvegarde/Chargement :** Le format des fichiers de carte a été étendu pour inclure ces nouvelles données, tout en assurant la rétrocompatibilité avec les anciennes cartes.
+
+## 7. Intégration du Mode Campagne et Améliorations du Jeu
+
+L'objectif était de lier l'éditeur au jeu via un système de campagne et d'améliorer la gestion des modes de jeu.
+
+### 7.1. Système de Campagne
+- **Métadonnées des Cartes :** Les cartes peuvent désormais inclure un nom et un ordre de passage, permettant une organisation séquentielle des niveaux.
+- **Manifeste des Cartes :** Introduction d'un fichier `maps/manifest.json` pour lister dynamiquement les cartes disponibles dans la campagne. Ce fichier doit être mis à jour manuellement lors de l'ajout de nouvelles cartes.
+- **Progression du Joueur :** Le statut "mission accomplie" est sauvegardé localement dans le navigateur (`localStorage`), permettant de suivre la progression du joueur à travers les niveaux.
+- **Menu de Sélection :** La page d'accueil (`index.html`) a été transformée en un menu de sélection de missions dynamique, affichant les cartes par ordre et leur statut de complétion.
+
+### 7.2. Gestion des Modes de Jeu
+- **Chargement Dynamique :** Le jeu charge désormais la carte spécifiée via les paramètres d'URL (pour le mode Campagne).
+- **Mode Survie :** Le mode Survie déclenche maintenant correctement la génération procédurale de la carte, comme prévu.
+- **Correction de Bug :** Résolution d'une erreur de "redeclaration of import" dans `horde.js` qui empêchait le bon fonctionnement du mode Survie.
