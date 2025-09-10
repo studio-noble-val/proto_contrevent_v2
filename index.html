@@ -33,19 +33,25 @@
             font-size: 1.5em;
             color: #aaa;
         }
-        #cta-button {
-            font-size: 1.5em;
+        #menu-container {
+            display: flex;
+            gap: 20px;
+        }
+        .menu-button {
+            font-size: 1.2em;
             padding: 15px 30px;
-            background-color: #007bff;
+            background-color: #444;
             color: white;
-            border: none;
-            border-radius: 5px;
+            border: 1px solid #666;
+            border-radius: 8px;
             cursor: pointer;
             text-decoration: none;
-            transition: background-color 0.3s;
+            transition: all 0.2s;
         }
-        #cta-button:hover {
-            background-color: #0056b3;
+        .menu-button:hover {
+            background-color: #555;
+            border-color: #888;
+            transform: translateY(-2px);
         }
     </style>
 </head>
@@ -54,6 +60,10 @@
     <div id="illustration">
         <p>Illustration à venir</p>
     </div>
-    <a href="game.html" id="cta-button">Lancer une partie</a>
+    <div id="menu-container">
+        <a href="game.html?mode=aventure" class="menu-button">Mode Aventure</a>
+        <a href="game.html?mode=survie" class="menu-button">Mode Survie</a>
+        <a href="editor.html" class="menu-button">Éditeur de Niveaux</a>
+    </div>
 </body>
 </html>

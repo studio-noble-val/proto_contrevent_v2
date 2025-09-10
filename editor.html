@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Éditeur de Niveaux - Contrevent</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+        }
+        #editor-toolbar {
+            padding: 10px;
+            background-color: #333;
+            border-bottom: 1px solid #555;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        #editor-main {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        #editor-canvas {
+            background-color: #444;
+            flex-grow: 1;
+        }
+        #editor-data-view {
+            width: 300px;
+            background-color: #222;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        #editor-data-view textarea {
+            width: 100%;
+            flex-grow: 1;
+            background-color: #111;
+            color: #eee;
+            border: 1px solid #555;
+            resize: none;
+        }
+
+        /* Override default canvas style to make it fit the layout */
+        #editor-canvas {
+            position: static;
+            z-index: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="editor-toolbar">
+        <h2>Éditeur de Niveaux</h2>
+        <button id="new-map-button">Nouvelle Carte</button>
+        <button id="save-button">Sauvegarder</button>
+                <button id="load-file-button">Charger Fichier</button>
+        <button id="toggle-data-view-button">Afficher Données</button>
+        <button id="toggle-data-view-button">Cacher Données</button>
+        <span>|</span>
+        <label for="brush-size">Taille Pinceau:</label>
+        <input type="number" id="brush-size" value="1" min="1" max="10">
+        <label for="altitude-value">Altitude:</label>
+        <input type="range" id="altitude-value" min="0" max="1" step="0.05" value="0.5">
+    </div>
+    <div id="editor-main">
+        <canvas id="editor-canvas"></canvas>
+        <div id="editor-data-view">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Données de la carte (JSON)</h3>
+                <button id="apply-text-button" title="Appliquer les modifications du texte à la carte">Appliquer</button>
+            </div>
+            <textarea id="map-data-textarea" spellcheck="false"></textarea>
+        </div>
+    </div>
+
+    <script type="module" src="editor.js"></script>
+</body>
+</html>

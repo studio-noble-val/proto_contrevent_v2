@@ -145,6 +145,10 @@ canvas {
     pointer-events: none;
 }
 
+.d-none {
+    display: none;
+}
+
 
 /* --- Buttons --- */
 button {

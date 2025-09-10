@@ -141,3 +141,18 @@ Suite à l'implémentation des statistiques, cette étape a introduit une mécan
   - Les ombres sont rendues visibles à l'écran par des cônes translucides, dont l'opacité et la forme reflètent leurs propriétés, fournissant un retour visuel immédiat.
   - Correction d'un bug d'affichage initial qui rendait les ombres invisibles en raison d'une mauvaise gestion de l'ordre de rendu.
   - Amélioration de la visibilité des ombres en augmentant leur contraste et en rendant la variation de leur angle plus prononcée.
+
+### 5.5. Refonte de l'Interface Utilisateur (UI)
+
+L'objectif était de moderniser l'interface du jeu pour la rendre plus épurée, plus discrète et mieux intégrée, en se basant sur les retours utilisateurs.
+
+- **Consolidation de l'UI :**
+  - La barre d'information supérieure et la barre d'action inférieure ont été fusionnées en un unique panneau de contrôle moderne, centré en bas de l'écran.
+  - Ce nouveau panneau est semi-transparent avec un effet de flou (`backdrop-filter`) pour une meilleure immersion.
+
+- **Panneau de Débogage Flottant :**
+  - Les nombreux contrôles de débogage ont été extraits de la barre principale et placés dans un panneau flottant distinct.
+  - Un bouton "Debug" a été ajouté à l'interface principale pour afficher ou masquer ce panneau, libérant ainsi un espace visuel considérable par défaut.
+
+- **Localisation :**
+  - Le texte du bouton d'abandon a été changé de "It's Too Hard" à "Abandonner" pour une meilleure cohérence linguistique.
