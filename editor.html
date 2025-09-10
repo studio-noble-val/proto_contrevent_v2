@@ -134,6 +134,14 @@
                     <button id="load-file-button" class="action-button">Charger</button>
                 </div>
                 <div class="control-group">
+                    <label for="map-name">Nom:</label>
+                    <input type="text" id="map-name" value="Nouvelle Carte" style="flex-grow: 1;">
+                </div>
+                <div class="control-group">
+                    <label for="map-order">Ordre:</label>
+                    <input type="number" id="map-order" value="1" min="1" style="flex-grow: 1;">
+                </div>
+                <div class="control-group">
                     <label for="map-rows">Lignes:</label>
                     <input type="number" id="map-rows" value="30" min="1" max="200">
                     <label for="map-cols">Cols:</label>
@@ -144,7 +152,7 @@
 
             <!-- Tools -->
             <div class="panel-section">
-                <h3>Outils</h3>
+                <h3>Outils de Terrain</h3>
                 <div class="button-group">
                     <button class="tool-button active" data-tool="paint">Peindre</button>
                     <button class="tool-button" data-tool="raise">Augmenter</button>
@@ -165,6 +173,15 @@
                         <label for="intensity-value">Intensité:</label>
                         <input type="range" id="intensity-value" min="0" max="4" step="1" value="1">
                     </div>
+                </div>
+            </div>
+
+            <!-- Game Elements -->
+            <div class="panel-section">
+                <h3>Éléments de Jeu</h3>
+                <div class="button-group">
+                    <button class="tool-button" data-tool="setSpawn">Placer Spawn</button>
+                    <button class="tool-button" data-tool="setFlag">Placer Drapeau</button>
                 </div>
             </div>
         </div>

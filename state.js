@@ -1,6 +1,9 @@
 export const state = {
     grid: [],
     horde: [],
+    spawnPoint: null,
+    flagPosition: null,
+    currentMap: null,
     activeFormation: 'none',
     targetDestination: null,
     gamePaused: false,

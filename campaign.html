@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrevent - Campagne</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #eee;
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #campaign-container {
+            width: 80%;
+            max-width: 800px;
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        h1 {
+            color: #00aaff;
+            text-align: center;
+        }
+        #map-list-container ul {
+            list-style: none;
+            padding: 0;
+        }
+        #map-list-container li a {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            background-color: #3a3a3a;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #eee;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        #map-list-container li a:hover {
+            background-color: #4a4a4a;
+            transform: scale(1.02);
+        }
+        #map-list-container li.completed a {
+            background-color: #3a4a3a;
+            color: #8a8;
+        }
+        .map-order { font-weight: bold; color: #00aaff; }
+        .map-name { flex-grow: 1; margin-left: 2rem; }
+        .map-status { font-style: italic; }
+    </style>
+</head>
+<body>
+    <div id="campaign-container">
+        <h1>Contrevent : L'Ascension</h1>
+        <div id="map-list-container">
+            <p>Chargement des missions...</p>
+        </div>
+    </div>
+
+    <script type="module" src="menu.js"></script>
+</body>
+</html>

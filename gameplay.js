@@ -1,15 +1,23 @@
 import { state } from './state.js';
 import { HEX_SIZE } from './constants.js';
+import { offsetToPixel } from './grid-utils.js';
 
 let canvas, ctx;
 
-export function init(canvasElement, context) {
+export function init(canvasElement, context, flagPosition) {
     canvas = canvasElement;
     ctx = context;
-    // Initialize flag position
+
+    let flagPixelPos;
+    if (flagPosition) {
+        flagPixelPos = offsetToPixel(flagPosition.r, flagPosition.c);
+    } else {
+        flagPixelPos = { x: canvas.width - HEX_SIZE * 3, y: canvas.height / 2 };
+    }
+
     state.victoryFlag = {
-        x: canvas.width - HEX_SIZE * 3,
-        y: canvas.height / 2,
+        x: flagPixelPos.x,
+        y: flagPixelPos.y,
         size: HEX_SIZE * 1.5,
         triggered: false
     };
@@ -50,6 +58,12 @@ export function drawVictoryFlag() {
     ctx.restore();
 }
 
+function setMapAsCompleted(mapFilename) {
+    const progress = JSON.parse(localStorage.getItem('contrevent_progress') || '{}');
+    progress[mapFilename] = true;
+    localStorage.setItem('contrevent_progress', JSON.stringify(progress));
+}
+
 export function checkVictoryCondition() {
     if (!state.victoryFlag || state.victoryFlag.triggered) return;
 
@@ -62,6 +76,8 @@ export function checkVictoryCondition() {
     if (allMembersNearFlag) {
         state.victoryFlag.triggered = true;
         state.gamePaused = true;
+
+        setMapAsCompleted(state.currentMap);
 
         const elapsedTime = Math.round((performance.now() - state.startTime) / 1000);
         const minutes = Math.floor(elapsedTime / 60).toString().padStart(2, '0');
@@ -86,10 +102,10 @@ export function checkVictoryCondition() {
 
         document.getElementById('continue-button').onclick = () => {
             // For now, reloads the page to simulate a new level
-            window.location.reload();
+            window.location.href = 'campaign.html'; // Go back to map list
         };
         document.getElementById('main-menu-button').onclick = () => {
-            window.location.href = 'index.html';
+            window.location.href = 'campaign.html';
         };
     }
 }

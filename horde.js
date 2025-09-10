@@ -1,5 +1,6 @@
 import { state } from './state.js';
 import { pixelToHex } from './grid.js';
+import { offsetToPixel } from './grid-utils.js';
 
 let canvas, ctx;
 
@@ -26,9 +27,16 @@ export function init(canvasElement, context) {
     ctx = context;
 }
 
-export function initHorde() {
-    const startX = canvas.width / 4;
-    const startY = canvas.height / 2;
+export function initHorde(spawnPoint) {
+    let startX, startY;
+    if (spawnPoint) {
+        const pixelCoords = offsetToPixel(spawnPoint.r, spawnPoint.c);
+        startX = pixelCoords.x;
+        startY = pixelCoords.y;
+    } else {
+        startX = canvas.width / 4;
+        startY = canvas.height / 2;
+    }
     state.horde = [];
     for (let i = 0; i < 10; i++) {
         const archetypeKey = roster[i];

@@ -10,20 +10,32 @@ export function init(canvasElement, context) {
     ctx = context;
 }
 
-export function initGrid() {
-    const gridCols = Math.ceil(canvas.width / GRID_HORIZ_SPACING) + 2;
-    const gridRows = Math.ceil(canvas.height / GRID_VERT_SPACING) + 1;
-    state.grid = [];
-    const reliefScale = 20; // Smoother terrain
-    for (let r = 0; r < gridRows; r++) {
-        state.grid[r] = [];
-        for (let c = 0; c < gridCols; c++) {
-            const relief = (PerlinNoise.noise(c / reliefScale, r / reliefScale, 0) + 1) / 2;
-            state.grid[r][c] = { relief, wind: { masse: 0, celerite: 0, direction: Math.PI, propagationProgress: 0 }, isSource: false };
+export function initGrid(reliefGrid) {
+    if (reliefGrid) {
+        state.grid = reliefGrid.map(row => 
+            row.map(relief => ({ relief, wind: { masse: 0, celerite: 0, direction: Math.PI, propagationProgress: 0 }, isSource: false }))
+        );
+        // This part is tricky, how to set sources on a custom map?
+        // For now, let's keep it simple and set it on the last column for some rows.
+        const gridCols = state.grid[0].length;
+        for (let r = 0; r < state.grid.length; r++) {
+            if (r % 4 === 0) state.grid[r][gridCols - 1].isSource = true;
         }
-    }
-    for (let r = 0; r < gridRows; r++) {
-        if (r % 4 === 0) state.grid[r][gridCols - 1].isSource = true;
+    } else {
+        const gridCols = Math.ceil(canvas.width / GRID_HORIZ_SPACING) + 2;
+        const gridRows = Math.ceil(canvas.height / GRID_VERT_SPACING) + 1;
+        state.grid = [];
+        const reliefScale = 20; // Smoother terrain
+        for (let r = 0; r < gridRows; r++) {
+            state.grid[r] = [];
+            for (let c = 0; c < gridCols; c++) {
+                const relief = (PerlinNoise.noise(c / reliefScale, r / reliefScale, 0) + 1) / 2;
+                state.grid[r][c] = { relief, wind: { masse: 0, celerite: 0, direction: Math.PI, propagationProgress: 0 }, isSource: false };
+            }
+        }
+        for (let r = 0; r < gridRows; r++) {
+            if (r % 4 === 0) state.grid[r][gridCols - 1].isSource = true;
+        }
     }
 }
 

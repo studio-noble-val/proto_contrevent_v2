@@ -24,10 +24,14 @@ const state = {
     brushMode: 'paint',
     zoomLevel: 1,
     cameraOffset: { x: 0, y: 0 },
+    spawnPoint: null,
+    flagPosition: null,
+    mapName: 'Nouvelle Carte',
+    mapOrder: 1,
 };
 
 // --- DOM Elements ---
-let canvas, ctx, brushSizeInput, altitudeInput, intensityInput, toolButtons, paintToolOptionsPanel, sculptToolOptionsPanel, mapRowsInput, mapColsInput, editorPanel, panelHeader;
+let canvas, ctx, brushSizeInput, altitudeInput, intensityInput, toolButtons, paintToolOptionsPanel, sculptToolOptionsPanel, mapRowsInput, mapColsInput, editorPanel, panelHeader, mapNameInput, mapOrderInput;
 
 // --- Initialization ---
 function init() {
@@ -44,9 +48,12 @@ function init() {
     mapColsInput = document.getElementById('map-cols');
     editorPanel = document.getElementById('editor-panel');
     panelHeader = document.getElementById('panel-header');
+    mapNameInput = document.getElementById('map-name');
+    mapOrderInput = document.getElementById('map-order');
 
-    // Set initial intensity from slider
     state.intensity = INTENSITY_LEVELS[intensityInput.value];
+    state.mapName = mapNameInput.value;
+    state.mapOrder = parseInt(mapOrderInput.value, 10);
 
     resizeCanvas();
     createNewGrid(parseInt(mapRowsInput.value, 10), parseInt(mapColsInput.value, 10));
@@ -61,6 +68,8 @@ function resizeCanvas() {
 
 function setupEventListeners() {
     // Toolbar listeners
+    mapNameInput.addEventListener('change', e => state.mapName = e.target.value);
+    mapOrderInput.addEventListener('change', e => state.mapOrder = parseInt(e.target.value, 10));
     brushSizeInput.addEventListener('change', e => state.brushSize = parseInt(e.target.value, 10));
     altitudeInput.addEventListener('input', e => state.altitude = parseFloat(e.target.value));
     intensityInput.addEventListener('input', e => state.intensity = INTENSITY_LEVELS[e.target.value]);
@@ -71,8 +80,9 @@ function setupEventListeners() {
             toolButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
             state.brushMode = button.dataset.tool;
+            const isTerrainTool = ['paint', 'raise', 'lower'].includes(state.brushMode);
             paintToolOptionsPanel.style.display = state.brushMode === 'paint' ? 'block' : 'none';
-            sculptToolOptionsPanel.style.display = state.brushMode !== 'paint' ? 'block' : 'none';
+            sculptToolOptionsPanel.style.display = ['raise', 'lower'].includes(state.brushMode) ? 'block' : 'none';
         });
     });
 
@@ -92,8 +102,10 @@ function setupEventListeners() {
             state.isPanning = true;
             state.lastPanPosition = { x: e.clientX, y: e.clientY };
         } else if (e.button === 0) { // Left mouse
-            state.isPainting = true;
-            paintHexes(e);
+            if (['paint', 'raise', 'lower'].includes(state.brushMode)) {
+                state.isPainting = true;
+            }
+            handleCanvasClick(e);
         }
     });
 
@@ -121,7 +133,7 @@ function setupEventListeners() {
             state.lastPanPosition = { x: e.clientX, y: e.clientY };
             drawGrid();
         } else if (state.isPainting) {
-            paintHexes(e);
+            handleCanvasClick(e);
         }
     });
 
@@ -156,15 +168,33 @@ function setupEventListeners() {
     window.addEventListener('resize', resizeCanvas);
 }
 
+function slugify(text) {
+    return text.toString().toLowerCase()
+        .replace(/\s+/g, '_')           // Replace spaces with _
+        .replace(/[\u0300-\u036f]/g, '') // remove accents
+        .replace(/[^ -ɏḀ-ỿⱠ-Ɀ꜠-ꟿ]/g, '') // remove non-alphanumeric chars
+        .replace(/&/g, '-and-')         // replace & with '-and-'
+        .replace(/[^ -ɏḀ-ỿⱠ-Ɀ꜠-ꟿ_]/g, '') // remove special chars
+        .replace(/_/g, '_')             // replace _ with _
+        .replace(/__+/g, '_');          // replace multiple _ with single _
+}
+
 // --- Save/Load Logic ---
 function saveMap() {
-    const reliefGrid = state.grid.map(row => row.map(cell => parseFloat(cell.relief.toFixed(3))));
-    const mapData = JSON.stringify(reliefGrid, null, 2);
-    const blob = new Blob([mapData], { type: 'application/json' });
+    const mapData = {
+        name: state.mapName,
+        order: state.mapOrder,
+        completed: false,
+        relief: state.grid.map(row => row.map(cell => parseFloat(cell.relief.toFixed(3)))),
+        spawnPoint: state.spawnPoint,
+        flagPosition: state.flagPosition,
+    };
+    const filename = slugify(state.mapName) + '.json';
+    const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `map_${Date.now()}.json`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -181,13 +211,30 @@ function loadMapFromFile() {
         const reader = new FileReader();
         reader.onload = event => {
             try {
-                const reliefGrid = JSON.parse(event.target.result);
+                const data = JSON.parse(event.target.result);
+                let reliefGrid;
+                if (Array.isArray(data)) { // Old format
+                    reliefGrid = data;
+                    state.spawnPoint = null;
+                    state.flagPosition = null;
+                    state.mapName = 'Carte importée';
+                    state.mapOrder = 99;
+                } else { // New format
+                    reliefGrid = data.relief;
+                    state.spawnPoint = data.spawnPoint || null;
+                    state.flagPosition = data.flagPosition || null;
+                    state.mapName = data.name || 'Carte sans nom';
+                    state.mapOrder = data.order || 99;
+                }
+
                 if (!Array.isArray(reliefGrid) || !Array.isArray(reliefGrid[0])) {
                     throw new Error("Invalid map data format.");
                 }
                 state.grid = reliefGrid.map(row => row.map(relief => ({ relief })) );
                 mapRowsInput.value = state.grid.length;
-                mapColsInput.value = state.grid[0].length;
+                mapColsInput.vsalue = state.grid[0].length;
+                mapNameInput.value = state.mapName;
+                mapOrderInput.value = state.mapOrder;
                 drawGrid();
                 alert("Carte chargée avec succès !");
             } catch (error) {
@@ -199,15 +246,33 @@ function loadMapFromFile() {
     input.click();
 }
 
-// --- Painting Logic ---
-function paintHexes(e) {
+// --- Main Click/Drag Handler ---
+function handleCanvasClick(e) {
     const rect = canvas.getBoundingClientRect();
     const mouseX = (e.clientX - rect.left - state.cameraOffset.x) / state.zoomLevel;
     const mouseY = (e.clientY - rect.top - state.cameraOffset.y) / state.zoomLevel;
+    const clickedHex = pixelToOffset(mouseX, mouseY);
 
-    const centerHex = pixelToOffset(mouseX, mouseY);
+    if (!state.grid[clickedHex.r] || !state.grid[clickedHex.r][clickedHex.c]) return;
+
+    switch (state.brushMode) {
+        case 'paint':
+        case 'raise':
+        case 'lower':
+            paintHexes(clickedHex);
+            break;
+        case 'setSpawn':
+            state.spawnPoint = clickedHex;
+            break;
+        case 'setFlag':
+            state.flagPosition = clickedHex;
+            break;
+    }
+    drawGrid();
+}
+
+function paintHexes(centerHex) {
     const centerCube = offsetToCube(centerHex);
-
     const searchRadius = state.brushSize;
     const minRow = Math.max(0, centerHex.r - searchRadius);
     const maxRow = Math.min(state.grid.length - 1, centerHex.r + searchRadius);
@@ -232,12 +297,13 @@ function paintHexes(e) {
             }
         }
     }
-    drawGrid();
 }
 
 // --- Grid & Map Logic ---
 function createNewGrid(rows, cols) {
     state.grid = [];
+    state.spawnPoint = null;
+    state.flagPosition = null;
     for (let r = 0; r < rows; r++) {
         state.grid[r] = [];
         for (let c = 0; c < cols; c++) {
@@ -264,6 +330,21 @@ function drawGrid() {
             drawHexagon(x + HEX_WIDTH / 2, y + HEX_HEIGHT / 2, state.grid[r][c].relief);
         }
     }
+
+    // Draw Game Elements
+    if (state.spawnPoint) {
+        const offset = (state.spawnPoint.r % 2) * (GRID_HORIZ_SPACING / 2);
+        const x = state.spawnPoint.c * GRID_HORIZ_SPACING + offset;
+        const y = state.spawnPoint.r * GRID_VERT_SPACING;
+        drawSpawnMarker(x + HEX_WIDTH / 2, y + HEX_HEIGHT / 2);
+    }
+    if (state.flagPosition) {
+        const offset = (state.flagPosition.r % 2) * (GRID_HORIZ_SPACING / 2);
+        const x = state.flagPosition.c * GRID_HORIZ_SPACING + offset;
+        const y = state.flagPosition.r * GRID_VERT_SPACING;
+        drawFlagMarker(x + HEX_WIDTH / 2, y + HEX_HEIGHT / 2);
+    }
+
     ctx.restore();
 }
 
@@ -286,6 +367,29 @@ function drawHexagon(x, y, relief) {
     ctx.fill();
     ctx.strokeStyle = '#222';
     ctx.lineWidth = 1 / state.zoomLevel;
+    ctx.stroke();
+}
+
+function drawSpawnMarker(x, y) {
+    ctx.beginPath();
+    ctx.arc(x, y, BASE_HEX_SIZE / 2, 0, 2 * Math.PI);
+    ctx.fillStyle = 'rgba(0, 100, 255, 0.7)';
+    ctx.fill();
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 2 / state.zoomLevel;
+    ctx.stroke();
+}
+
+function drawFlagMarker(x, y) {
+    ctx.beginPath();
+    ctx.moveTo(x, y - BASE_HEX_SIZE / 2);
+    ctx.lineTo(x, y + BASE_HEX_SIZE / 2);
+    ctx.lineTo(x + BASE_HEX_SIZE / 2, y);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
+    ctx.fill();
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 2 / state.zoomLevel;
     ctx.stroke();
 }
 

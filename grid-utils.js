@@ -84,3 +84,18 @@ export function pixelToOffset(x, y) {
     const rounded = roundCube(cube);
     return cubeToOffset(rounded);
 }
+
+/**
+ * Converts offset coordinates to pixel coordinates for the center of the hex.
+ * @param {number} r - The row of the hex.
+ * @param {number} c - The column of the hex.
+ * @returns {{x: number, y: number}} Pixel coordinates.
+ */
+export function offsetToPixel(r, c) {
+    const GRID_HORIZ_SPACING = HEX_WIDTH;
+    const GRID_VERT_SPACING = HEX_HEIGHT * 3 / 4;
+    const offset = (r % 2) * (GRID_HORIZ_SPACING / 2);
+    const x = c * GRID_HORIZ_SPACING + offset + HEX_WIDTH / 2;
+    const y = r * GRID_VERT_SPACING + HEX_HEIGHT / 2;
+    return { x, y };
+}
