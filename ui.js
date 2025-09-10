@@ -1,6 +1,7 @@
 import { state } from './state.js';
 import { getCharacterAt, setGroupTarget } from './horde.js';
 import { pixelToHex } from './grid.js';
+import * as camera from './camera.js';
 
 let canvas;
 let ctx;
@@ -76,16 +77,18 @@ function setupEventListeners() {
         inspector.style.display = 'none';
         if (e.button !== 0) return;
         state.isDragging = true;
-        state.selectionRect.startX = e.offsetX;
-        state.selectionRect.startY = e.offsetY;
-        state.selectionRect.currentX = e.offsetX;
-        state.selectionRect.currentY = e.offsetY;
+        const worldCoords = camera.getTransformedCoords(e.clientX, e.clientY);
+        state.selectionRect.startX = worldCoords.x;
+        state.selectionRect.startY = worldCoords.y;
+        state.selectionRect.currentX = worldCoords.x;
+        state.selectionRect.currentY = worldCoords.y;
     });
 
     canvas.addEventListener('mousemove', e => {
         if (state.isDragging) {
-            state.selectionRect.currentX = e.offsetX;
-            state.selectionRect.currentY = e.offsetY;
+            const worldCoords = camera.getTransformedCoords(e.clientX, e.clientY);
+            state.selectionRect.currentX = worldCoords.x;
+            state.selectionRect.currentY = worldCoords.y;
         } else {
             handleTooltip(e);
         }
@@ -101,15 +104,17 @@ function setupEventListeners() {
             if (!e.shiftKey) {
                 state.horde.forEach(p => p.isSelected = false);
             }
-            const rect = getSelectionRect();
+            const rect = getSelectionRect(); // This is a local function in ui.js
             state.horde.forEach(p => {
+                // The p.x, p.y are already world coordinates, so compare with world-transformed rect
                 if (p.x > rect.x && p.x < rect.x + rect.w && p.y > rect.y && p.y < rect.y + rect.h) {
                     p.isSelected = true;
                 }
             });
         } else {
             // This was a simple click
-            const clickedOnCharacter = getCharacterAt(e.offsetX, e.offsetY);
+            const worldCoords = camera.getTransformedCoords(e.clientX, e.clientY); // Convert click to world coords
+            const clickedOnCharacter = getCharacterAt(worldCoords.x, worldCoords.y); // Use world coords for character lookup
             if (clickedOnCharacter) {
                 // Clicked on a character to select/deselect
                 if (!e.shiftKey) {
@@ -118,7 +123,7 @@ function setupEventListeners() {
                 clickedOnCharacter.isSelected = !clickedOnCharacter.isSelected;
             } else {
                 // Clicked on empty ground to set destination
-                state.targetDestination = { x: e.offsetX, y: e.offsetY };
+                state.targetDestination = worldCoords; // Use world coords for target destination
                 setGroupTarget(state.targetDestination);
             }
         }

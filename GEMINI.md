@@ -157,7 +157,25 @@ L'objectif était de moderniser l'interface du jeu pour la rendre plus épurée,
 - **Localisation :**
   - Le texte du bouton d'abandon a été changé de "It's Too Hard" à "Abandonner" pour une meilleure cohérence linguistique.
 
-## 6. Développement de l'Éditeur de Carte
+### 5.6. Résolution de Bugs et Améliorations de l'Expérience Utilisateur
+
+Cette section détaille les corrections et améliorations récentes apportées pour stabiliser le jeu et améliorer l'expérience utilisateur.
+
+- **Problèmes de Chargement de Carte et de Cache :**
+    - **Description :** La nouvelle carte (`carte3.json`) n'apparaissait pas dans le menu de sélection malgré son ajout au dossier `maps/`.
+    - **Résolution :** Identification d'une erreur de frappe dans le nom de fichier (`cartie2-2.json` au lieu de `carte2-2.json`) et d'un problème de cache navigateur/serveur empêchant la mise à jour du `manifest.json`. La correction du nom de fichier et la purge du cache ont résolu le problème.
+
+- **Incohérence des Couleurs d'Altitude entre l'Éditeur et le Jeu :**
+    - **Description :** Les couleurs d'altitude affichées dans l'éditeur de carte ne correspondaient pas à celles du jeu (ex: blanc dans l'éditeur, brun clair en jeu pour l'altitude maximale).
+    - **Résolution :** Uniformisation de la fonction `getColorForRelief` dans `grid.js` pour qu'elle utilise la même palette de couleurs et la même logique de mappage que celle de `editor.js`, assurant une cohérence visuelle.
+
+- **Décalage du Pointeur et Problèmes d'Interaction UI/Caméra :**
+    - **Description :** Le pointeur de la souris était décalé par rapport à la position attendue après des opérations de zoom ou de panoramique, et des erreurs `TypeError` liées au module `ui` empêchaient certaines interactions.
+    - **Résolution :**
+        *   **Refactorisation de la gestion des événements de la souris :** La responsabilité de la gestion du rectangle de sélection a été consolidée dans `ui.js`. Les écouteurs d'événements de la souris dans `main.js` qui dupliquaient ou appelaient des fonctions `ui` inexistantes ont été supprimés.
+        *   **Correction des coordonnées de sélection :** Les écouteurs d'événements `mousedown`, `mousemove`, et `mouseup` dans `ui.js` ont été modifiés pour utiliser `camera.getTransformedCoords`. Cela assure que les coordonnées du rectangle de sélection et les points de clic pour la sélection de personnage ou la définition de destination sont correctement convertis en coordonnées mondiales, prenant en compte le zoom et le panoramique de la caméra.
+        *   **Stabilité du code :** Le fichier `camera.js` a été restauré à une version stable et fonctionnelle, évitant les erreurs de syntaxe introduites par des modifications précédentes.
+
 
 L'objectif était de créer un éditeur de carte fonctionnel et ergonomique pour faciliter la création de niveaux.
 

@@ -137,9 +137,6 @@ canvas.addEventListener('mousedown', e => {
                 state.horde.forEach(p => p.isSelected = false);
                 clickedChar.isSelected = true;
             }
-        } else {
-            state.isDragging = true;
-            ui.setSelectionRectStart(e.clientX, e.clientY);
         }
     } else if (e.button === 2) { // Right click
         const worldCoords = camera.getTransformedCoords(e.clientX, e.clientY);
@@ -147,21 +144,9 @@ canvas.addEventListener('mousedown', e => {
     }
 });
 
-canvas.addEventListener('mousemove', e => {
-    if (state.isDragging) {
-        ui.setSelectionRectCurrent(e.clientX, e.clientY);
-    }
-});
 
-canvas.addEventListener('mouseup', e => {
-    if (state.isDragging) {
-        const rect = ui.getSelectionRect();
-        const worldStart = camera.getTransformedCoords(rect.startX, rect.startY);
-        const worldEnd = camera.getTransformedCoords(rect.currentX, rect.currentY);
-        ui.selectHordeInRect(worldStart, worldEnd);
-        state.isDragging = false;
-    }
-});
+
+
 
 // Prevent context menu on right click
 canvas.addEventListener('contextmenu', e => e.preventDefault());
