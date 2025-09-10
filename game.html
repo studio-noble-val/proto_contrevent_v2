@@ -25,11 +25,7 @@
     <canvas id="gameCanvas"></canvas>
 
     <div id="ui-bar">
-        <div id="stats">
-            <p>Stamina: <span id="stamina">--</span></p>
-            <p>Lucidity: <span id="lucidity">--</span></p>
-            <p>Cohesion: <span id="cohesion">--</span></p>
-        </div>
+        
         <div id="actions">
             <button id="pauseButton">Pause</button>
             <button id="giveUpButton">It's Too Hard</button>
@@ -98,6 +94,8 @@
     </div>
 
     <script type="module" src="main.js"></script>
+
+    <div id="tooltip" style="display: none;"></div>
 
     <div id="victory-screen" style="display: none;">
         <div class="dialog-box">

@@ -466,3 +466,22 @@ button {
 #victory-actions #continue-button:hover {
     background-color: #0056b3;
 }
+
+/* --- Tooltip --- */
+#tooltip {
+    position: absolute;
+    z-index: 20;
+    background-color: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    pointer-events: none; /* Prevents the tooltip from blocking mouse events on the canvas */
+    white-space: pre-wrap; /* Respects newlines and wraps text */
+    border: 1px solid #555;
+}
+
+#tooltip b {
+    color: #81D4FA; /* Light blue for the name */
+    font-size: 14px;
+}

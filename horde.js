@@ -3,6 +3,24 @@ import { pixelToHex } from './grid.js';
 
 let canvas, ctx;
 
+const archetypes = {
+    "éclaireur": { baseSpeed: 2.0, strength: 30, endurance: 50, name: "Éclaireur" },
+    "pilier": { baseSpeed: 1.2, strength: 80, endurance: 80, name: "Pilier" },
+    "hordier": { baseSpeed: 1.5, strength: 50, endurance: 60, name: "Hordier" },
+};
+
+const roster = [
+    "pilier", "pilier",
+    "éclaireur", "éclaireur",
+    "hordier", "hordier", "hordier", "hordier", "hordier", "hordier"
+];
+
+const archetypeColors = {
+    "éclaireur": "#81D4FA", // Light Blue
+    "pilier": "#BCAAA4", // Brownish Grey
+    "hordier": "#FFB74D", // Orange
+};
+
 export function init(canvasElement, context) {
     canvas = canvasElement;
     ctx = context;
@@ -13,14 +31,20 @@ export function initHorde() {
     const startY = canvas.height / 2;
     state.horde = [];
     for (let i = 0; i < 10; i++) {
+        const archetypeKey = roster[i];
+        const archetype = archetypes[archetypeKey];
         state.horde.push({
             id: i,
+            name: `${archetype.name} ${i}`,
+            archetype: archetypeKey,
             x: startX,
             y: startY + (i - 5) * 15,
             size: 10,
-            baseSpeed: 1.5,
-            currentSpeed: 1.5,
-            stamina: 100,
+            baseSpeed: archetype.baseSpeed,
+            currentSpeed: archetype.baseSpeed,
+            strength: archetype.strength,
+            endurance: archetype.endurance,
+            stamina: 100, // Stamina can be linked to endurance later
             isSelected: false,
             target: null
         });
@@ -31,7 +55,7 @@ export function drawHorde() {
     state.horde.forEach(p => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, 2 * Math.PI);
-        ctx.fillStyle = p.isSelected ? "yellow" : "orange";
+        ctx.fillStyle = p.isSelected ? "yellow" : archetypeColors[p.archetype];
         ctx.fill();
         ctx.strokeStyle = "red";
         ctx.stroke();
@@ -46,7 +70,9 @@ export function moveHorde() {
             const wind = state.grid[hexCoords.r][hexCoords.c].wind;
             if (wind.masse > 0) {
                 const moveAngle = Math.atan2(p.target.y - p.y, p.target.x - p.x);
-                windResistance = Math.max(0, -Math.cos(moveAngle - wind.direction)) * wind.masse;
+                // Strength (0-100) reduces the effect of wind mass.
+                const effectiveWindMass = Math.max(0, wind.masse * (1 - p.strength / 125));
+                windResistance = Math.max(0, -Math.cos(moveAngle - wind.direction)) * effectiveWindMass;
             }
         }
         p.currentSpeed = p.baseSpeed * (1 - windResistance);

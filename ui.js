@@ -86,14 +86,18 @@ function setupEventListeners() {
         if (state.isDragging) {
             state.selectionRect.currentX = e.offsetX;
             state.selectionRect.currentY = e.offsetY;
+        } else {
+            handleTooltip(e);
         }
     });
 
     canvas.addEventListener('mouseup', e => {
-        if (e.button !== 0) return;
+        if (e.button !== 0) return; // Only for left clicks
         state.isDragging = false;
         const wasDragSelection = Math.abs(state.selectionRect.startX - state.selectionRect.currentX) > 5 || Math.abs(state.selectionRect.startY - state.selectionRect.currentY) > 5;
+        
         if (wasDragSelection) {
+            // This was a drag-selection for selecting units
             if (!e.shiftKey) {
                 state.horde.forEach(p => p.isSelected = false);
             }
@@ -104,22 +108,26 @@ function setupEventListeners() {
                 }
             });
         } else {
+            // This was a simple click
             const clickedOnCharacter = getCharacterAt(e.offsetX, e.offsetY);
             if (clickedOnCharacter) {
+                // Clicked on a character to select/deselect
                 if (!e.shiftKey) {
                     state.horde.forEach(p => p.isSelected = false);
                 }
                 clickedOnCharacter.isSelected = !clickedOnCharacter.isSelected;
             } else {
-                showHexInspector(e.offsetX, e.offsetY);
+                // Clicked on empty ground to set destination
+                state.targetDestination = { x: e.offsetX, y: e.offsetY };
+                setGroupTarget(state.targetDestination);
             }
         }
     });
 
     canvas.addEventListener('contextmenu', e => {
         e.preventDefault();
-        state.targetDestination = { x: e.offsetX, y: e.offsetY };
-        setGroupTarget(state.targetDestination);
+        // Right-click now shows the hex inspector
+        showHexInspector(e.offsetX, e.offsetY);
     });
 
     document.getElementById("pauseButton").addEventListener("click", () => {
@@ -135,6 +143,20 @@ function setupEventListeners() {
     });
 }
 
+function handleTooltip(e) {
+    const tooltip = document.getElementById('tooltip');
+    const char = getCharacterAt(e.offsetX, e.offsetY);
+
+    if (char) {
+        tooltip.style.display = 'block';
+        tooltip.style.left = `${e.pageX + 15}px`;
+        tooltip.style.top = `${e.pageY + 15}px`;
+        tooltip.innerHTML = `<b>${char.name}</b> (${char.archetype})\nStrength: ${char.strength}\nEndurance: ${char.endurance}\nStamina: ${Math.round(char.stamina)}`;
+    } else {
+        tooltip.style.display = 'none';
+    }
+}
+
 export function drawSelectionRect() {
     const rect = getSelectionRect();
     ctx.strokeStyle = "rgba(0, 255, 0, 0.7)";
@@ -148,20 +170,6 @@ function getSelectionRect() {
     const w = Math.abs(state.selectionRect.startX - state.selectionRect.currentX);
     const h = Math.abs(state.selectionRect.startY - state.selectionRect.currentY);
     return { x, y, w, h };
-}
-
-export function updateStats() {
-    let selected = state.horde.filter(p => p.isSelected);
-    if (selected.length === 0) {
-        selected = state.horde;
-    }
-    if (selected.length > 0) {
-        document.getElementById("stamina").textContent = Math.round(selected.reduce((sum, p) => sum + p.stamina, 0) / selected.length);
-    } else {
-        document.getElementById("stamina").textContent = "--";
-    }
-    document.getElementById("lucidity").textContent = "--";
-    document.getElementById("cohesion").textContent = "--";
 }
 
 function setFormation(formation) {

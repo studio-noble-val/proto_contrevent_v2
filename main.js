@@ -16,7 +16,6 @@ function init() {
     gameplay.init(canvas, ctx);
     resizeCanvas();
     horde.initHorde();
-    ui.updateStats();
     gameLoop();
 }
 
@@ -44,7 +43,6 @@ function update() {
     horde.moveHorde();
     horde.resolveCollisions();
     wind.applyWindEffects();
-    ui.updateStats();
     ui.updateTopBar();
     gameplay.checkVictoryCondition();
 }

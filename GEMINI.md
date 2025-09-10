@@ -107,3 +107,22 @@ Cette version se concentre sur l'implémentation des boucles de gameplay de base
     - L'alerte de victoire a été remplacée par un écran de fin de niveau plus immersif.
     - Cet écran affiche un titre, un texte narratif tiré d'une liste (simulant le journal du Scribe), le temps final et le score.
     - Il offre au joueur le choix de continuer vers l'étape suivante (en rechargeant la page pour le prototype) ou de retourner au menu principal.
+
+### 5.3. Implémentation des Statistiques et Améliorations UX
+
+L'objectif était de donner plus de profondeur au gameplay en introduisant des statistiques uniques pour chaque membre de la horde et d'améliorer l'expérience utilisateur en se basant sur les retours.
+
+- **Implémentation des Statistiques et Archétypes :**
+   - Création de 3 archétypes : `Pilier` (fort, lent), `Éclaireur` (rapide, fragile), et `Hordier` (équilibré).
+   - Chaque membre de la horde se voit assigner un archétype avec des statistiques uniques (`strength`, `endurance`, `baseSpeed`).
+   - La statistique de `strength` a un impact direct, en réduisant la force du vent subie par le personnage.
+
+- **Améliorations Visuelles et de Contrôle :**
+   - **Couleurs d'Archétype :** Chaque archétype possède désormais une couleur distincte pour une identification visuelle immédiate sur la carte.
+   - **Infobulle Dynamique :** Le panneau de statistiques statique a été remplacé par une infobulle contextuelle qui s'affiche au survol d'un personnage, affichant ses informations détaillées.
+   - **Inversion des Contrôles :** Les commandes de la souris ont été inversées pour un contrôle plus intuitif :
+       - **Clic Gauche :** Sélection et ordre de déplacement.
+       - **Clic Droit :** Inspection de la cellule.
+
+- **Correction de Bug Critique :**
+   - Résolution d'une régression qui empêchait l'affichage de la grille et de la horde suite à une première tentative de modification de l'UI.
