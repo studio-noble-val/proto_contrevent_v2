@@ -8,6 +8,7 @@ const GRID_HORIZ_SPACING = HEX_WIDTH;
 const GRID_VERT_SPACING = HEX_HEIGHT * 3 / 4;
 const PAN_SPEED = 15;
 const ZOOM_SPEED = 1.1;
+const INTENSITY_LEVELS = [0.025, 0.05, 0.075, 0.1, 0.125];
 
 // --- Editor State ---
 const state = {
@@ -20,7 +21,7 @@ const state = {
     isDragging: false,
     lastPanPosition: { x: 0, y: 0 },
     panelOffset: { x: 0, y: 0 },
-    brushMode: 'paint', // 'paint', 'raise', 'lower'
+    brushMode: 'paint',
     zoomLevel: 1,
     cameraOffset: { x: 0, y: 0 },
 };
@@ -44,6 +45,9 @@ function init() {
     editorPanel = document.getElementById('editor-panel');
     panelHeader = document.getElementById('panel-header');
 
+    // Set initial intensity from slider
+    state.intensity = INTENSITY_LEVELS[intensityInput.value];
+
     resizeCanvas();
     createNewGrid(parseInt(mapRowsInput.value, 10), parseInt(mapColsInput.value, 10));
     setupEventListeners();
@@ -59,7 +63,7 @@ function setupEventListeners() {
     // Toolbar listeners
     brushSizeInput.addEventListener('change', e => state.brushSize = parseInt(e.target.value, 10));
     altitudeInput.addEventListener('input', e => state.altitude = parseFloat(e.target.value));
-    intensityInput.addEventListener('input', e => state.intensity = parseFloat(e.target.value));
+    intensityInput.addEventListener('input', e => state.intensity = INTENSITY_LEVELS[e.target.value]);
 
     // Tool selection
     toolButtons.forEach(button => {

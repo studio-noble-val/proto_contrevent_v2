@@ -156,3 +156,22 @@ L'objectif était de moderniser l'interface du jeu pour la rendre plus épurée,
 
 - **Localisation :**
   - Le texte du bouton d'abandon a été changé de "It's Too Hard" à "Abandonner" pour une meilleure cohérence linguistique.
+
+## 6. Développement de l'Éditeur de Carte
+
+L'objectif était de créer un éditeur de carte fonctionnel et ergonomique pour faciliter la création de niveaux.
+
+### 6.1. Débogage Initial
+- **Correction du Pinceau :** Résolution d'un bug majeur de conversion de coordonnées qui provoquait un décalage des outils de peinture et de sculpture, rendant l'éditeur inutilisable. La correction a nécessité la création d'un module `grid-utils.js` partagé pour centraliser la logique de la grille hexagonale.
+
+### 6.2. Refonte de l'Interface et de l'Expérience Utilisateur
+- **Panneau d'Outils Flottant :** L'ancienne barre d'outils statique et défaillante a été remplacée par un panneau de contrôle moderne, flottant et déplaçable pour ne pas gêner la visualisation de la carte.
+- **Simplification :** L'interface a été épurée en supprimant l'affichage direct des données JSON de la carte.
+- **Contrôles Améliorés :**
+    - **Zoom :** Implémentation d'un zoom à la molette de la souris et via les touches `+` et `-`.
+    - **Déplacement (Panning) :** Ajout du déplacement de la caméra via un clic-molette maintenu ainsi qu'avec les flèches directionnelles et les touches `ZQSD` (WASD).
+    - **Gestion de la Résolution :** Remplacement du `prompt` initial par des champs de saisie directs pour changer les dimensions de la carte.
+
+### 6.3. Amélioration des Outils
+- **Couleurs du Relief :** La palette de couleurs a été étendue à 11 teintes pour mieux représenter les différents niveaux d'altitude.
+- **Ajustement de l'Intensité :** Le slider d'intensité pour les outils de sculpture a été modifié pour proposer 5 niveaux de puissance prédéfinis et plus fins, offrant un meilleur contrôle.
