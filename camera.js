@@ -35,8 +35,8 @@ function setupEventListeners() {
         if (camera.isPanning) {
             const dx = e.clientX - camera.lastPanPosition.x;
             const dy = e.clientY - camera.lastPanPosition.y;
-            camera.offset.x -= dx / camera.zoomLevel; // Subtract because dragging right moves view left
-            camera.offset.y -= dy / camera.zoomLevel;
+            camera.offset.x += dx;
+            camera.offset.y += dy;
             camera.lastPanPosition = { x: e.clientX, y: e.clientY };
             console.log('Camera Offset (mousemove):', camera.offset.x, camera.offset.y);
             // Redraw will be handled by the main game loop or editor loop
@@ -56,10 +56,10 @@ function setupEventListeners() {
     window.addEventListener('keydown', e => {
         let handled = true;
         switch(e.key.toLowerCase()) {
-            case 'w': case 'arrowup': camera.offset.y -= PAN_SPEED / camera.zoomLevel; break; // Move view up, offset Y decreases
-            case 's': case 'arrowdown': camera.offset.y += PAN_SPEED / camera.zoomLevel; break; // Move view down, offset Y increases
-            case 'a': case 'arrowleft': camera.offset.x -= PAN_SPEED / camera.zoomLevel; break; // Move view left, offset X decreases
-            case 'd': case 'arrowright': camera.offset.x += PAN_SPEED / camera.zoomLevel; break; // Move view right, offset X increases
+            case 'w': case 'arrowup': camera.offset.y += PAN_SPEED; break;
+            case 's': case 'arrowdown': camera.offset.y -= PAN_SPEED; break;
+            case 'a': case 'arrowleft': camera.offset.x += PAN_SPEED; break;
+            case 'd': case 'arrowright': camera.offset.x -= PAN_SPEED; break;
             case '+': case '=': camera.zoomLevel = Math.min(5, camera.zoomLevel * ZOOM_SPEED); break;
             case '-': camera.zoomLevel = Math.max(0.2, camera.zoomLevel / ZOOM_SPEED); break;
             default: handled = false;
@@ -73,48 +73,16 @@ function setupEventListeners() {
 }
 
 export function applyTransform(ctx) {
+    ctx.translate(camera.offset.x, camera.offset.y);
     ctx.scale(camera.zoomLevel, camera.zoomLevel);
-    ctx.translate(-camera.offset.x, -camera.offset.y);
 }
 
 export function getTransformedCoords(clientX, clientY) {
     const rect = camera.canvas.getBoundingClientRect();
-    const canvasX = clientX - rect.left;
-    const canvasY = clientY - rect.top;
-
-    const worldX = (canvasX / camera.zoomLevel) + camera.offset.x;
-    const worldY = (canvasY / camera.zoomLevel) + camera.offset.y;
-    console.log('getTransformedCoords input:', clientX, clientY, 'output:', worldX, worldY, 'offset:', camera.offset.x, camera.offset.y, 'zoom:', camera.zoomLevel);
-    return { x: worldX, y: worldY };
-}
-
-export function resetCamera() {
-    camera.zoomLevel = 1;
-    camera.offset = { x: 0, y: 0 };
-}
-
-export function getCameraState() {
-    return { zoomLevel: camera.zoomLevel, offset: { ...camera.offset } };
-}
-
-export function setCameraState(newState) {
-    camera.zoomLevel = newState.zoomLevel;
-    camera.offset = { ...newState.offset };
-}
-
-export function applyTransform(ctx) {
-    ctx.scale(camera.zoomLevel, camera.zoomLevel);
-    ctx.translate(-camera.offset.x, -camera.offset.y);
-}
-
-export function getTransformedCoords(clientX, clientY) {
-    const rect = camera.canvas.getBoundingClientRect();
-    const canvasX = clientX - rect.left;
-    const canvasY = clientY - rect.top;
-
-    const worldX = (canvasX / camera.zoomLevel) + camera.offset.x;
-    const worldY = (canvasY / camera.zoomLevel) + camera.offset.y;
-    return { x: worldX, y: worldY };
+    const mouseX = (clientX - rect.left - camera.offset.x) / camera.zoomLevel;
+    const mouseY = (clientY - rect.top - camera.offset.y) / camera.zoomLevel;
+    console.log('getTransformedCoords input:', clientX, clientY, 'output:', mouseX, mouseY, 'offset:', camera.offset.x, camera.offset.y, 'zoom:', camera.zoomLevel);
+    return { x: mouseX, y: mouseY };
 }
 
 export function resetCamera() {
