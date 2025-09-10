@@ -126,3 +126,18 @@ L'objectif était de donner plus de profondeur au gameplay en introduisant des s
 
 - **Correction de Bug Critique :**
    - Résolution d'une régression qui empêchait l'affichage de la grille et de la horde suite à une première tentative de modification de l'UI.
+
+### 5.4. Mécanique d'Ombre Protectrice et Affinements
+
+Suite à l'implémentation des statistiques, cette étape a introduit une mécanique de jeu majeure qui en dépend directement, ainsi que des améliorations visuelles.
+
+- **Implémentation de l'Ombre Protectrice :**
+  - Chaque personnage projette désormais une ombre en forme de cône qui protège les personnages se trouvant à l'intérieur du vent.
+  - La longueur de l'ombre dépend de la `force`, tandis que son angle d'ouverture dépend de l'`endurance`.
+  - La puissance de la protection (réduction du vent) est également liée à la `force` du personnage qui projette l'ombre.
+  - Les effets des ombres de plusieurs personnages sont cumulatifs, permettant des stratégies de placement avancées.
+
+- **Visualisation et Débogage :**
+  - Les ombres sont rendues visibles à l'écran par des cônes translucides, dont l'opacité et la forme reflètent leurs propriétés, fournissant un retour visuel immédiat.
+  - Correction d'un bug d'affichage initial qui rendait les ombres invisibles en raison d'une mauvaise gestion de l'ordre de rendu.
+  - Amélioration de la visibilité des ombres en augmentant leur contraste et en rendant la variation de leur angle plus prononcée.

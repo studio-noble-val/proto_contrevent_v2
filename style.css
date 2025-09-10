@@ -17,308 +17,154 @@ canvas {
     background-color: #333;
 }
 
-/* --- Top Bar --- */
-#top-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 10;
-    background: linear-gradient(to bottom, rgba(30, 30, 30, 0.9), rgba(10, 10, 10, 0.9)); /* Dark gradient */
-    border-bottom: 2px solid #555; /* Stronger border */
-    padding: 10px 20px;
-    display: flex;
-    justify-content: space-between;
-    box-sizing: border-box;
-    font-size: 1.1em;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* More pronounced shadow */
-}
+/* --- UI & Controls --- */
 
-#time-container, #score-container {
-    font-family: monospace;
-    background-color: rgba(0,0,0,0.6); /* Slightly more opaque */
-    padding: 5px 10px;
-    border-radius: 5px;
-    border: 1px solid #444; /* Stronger border */
-    color: #f0f0f0; /* Lighter text for contrast */
-}
-
-#score-container {
-    cursor: help;
-}
-
-/* --- UI Bar --- */
-/* --- UI Bar --- */
-/* --- UI Bar --- */
-/* --- Top Bar --- */
-#top-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 10;
-    background: linear-gradient(to bottom, rgba(30, 30, 30, 0.9), rgba(10, 10, 10, 0.9)); /* Dark gradient */
-    border-bottom: 2px solid #555; /* Stronger border */
-    padding: 10px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center; /* Vertically center items */
-    box-sizing: border-box;
-    font-size: 1.1em;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* More pronounced shadow */
-}
-
-#time-container, #score-container {
-    font-family: monospace;
-    background-color: rgba(0,0,0,0.6); /* Slightly more opaque */
-    padding: 5px 10px;
-    border-radius: 5px;
-    border: 1px solid #444; /* Stronger border */
-    color: #f0f0f0; /* Lighter text for contrast */
-}
-
-#score-container {
-    cursor: help;
-}
-
-/* --- UI Bar --- */
+/* Main UI Bar */
 #ui-bar {
-    position: fixed; /* Changed to fixed */
-    bottom: 0; /* Fixed to the very bottom */
-    left: 0; /* Align to left edge */
-    transform: translateX(0); /* Remove transform */
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 900px;
     z-index: 10;
-    background: linear-gradient(to bottom, rgba(30, 30, 30, 0.9), rgba(10, 10, 10, 0.9)); /* Same as top-bar */
-    border: 2px solid #555; /* Same as top-bar's border-bottom */
-    border-radius: 0; /* Removed to match top-bar */
-    padding: 10px 20px; /* Same as top-bar */
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid #444;
+    border-radius: 12px;
+    padding: 8px 15px;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between; /* Changed to space-between */
+    justify-content: space-between;
     align-items: center;
-    gap: 10px;
-    width: 100%; /* Full width */
-    /* max-width: 1200px; Removed max-width */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Same as top-bar */
-    font-size: 1.1em; /* Same as top-bar */
-    box-sizing: border-box; /* Ensure padding is included in width */
+    gap: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    transition: background 0.3s;
 }
 
-#stats p {
-    display: inline-block;
-    margin: 0 8px;
-    font-size: 0.95em;
-    font-weight: bold;
+#ui-bar:hover {
+    background: rgba(30, 30, 30, 0.85);
+}
+
+/* Sections within the UI Bar */
+.ui-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#game-info-left {
+    justify-content: flex-start;
+}
+
+#game-actions-center {
+    flex-grow: 1;
+    justify-content: center;
+}
+
+#game-controls-right {
+    justify-content: flex-end;
+}
+
+/* Info Displays (Time, Score) */
+#time-container, #score-container {
+    font-family: monospace;
+    font-size: 1em;
     color: #f0f0f0;
+    background-color: rgba(0,0,0,0.3);
+    padding: 5px 10px;
+    border-radius: 5px;
 }
 
+#score-container {
+    cursor: help;
+}
+
+/* Formation Controls */
 #formationControls {
-    margin: 0 auto; /* Center horizontally */
-    display: flex; /* Make it a flex container */
-    align-items: center; /* Vertically align items */
-    gap: 8px; /* Adjust gap between buttons */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: rgba(0,0,0,0.3);
+    padding: 4px;
+    border-radius: 8px;
 }
 
 #formationControls span {
-    margin-right: 0; /* Remove margin-right */
-    font-size: 0.9em; /* Adjust font size */
-    color: #ccc; /* Slightly muted color */
+    font-size: 0.9em;
+    color: #ccc;
+    margin-left: 5px;
 }
 
-/* --- Debug Controls --*/
+/* Debug Panel */
+#debug-panel {
+    position: fixed;
+    bottom: 90px; /* Position above the main UI bar */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 11;
+    background: rgba(35, 35, 35, 0.95);
+    border: 1px solid #555;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    width: 90%;
+    max-width: 800px;
+    transition: opacity 0.3s, transform 0.3s;
+}
+
 #debugControls {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 5px;
-    background-color: rgba(0,0,0,0.3);
-    padding: 3px 8px;
-    border-radius: 5px;
+    gap: 10px 20px;
+}
+
+#debugControls > div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 #debugControls label {
-    font-size: 0.8em;
+    font-size: 0.9em;
 }
 
-#windSpeedSlider {
-    width: 100px;
-}
-
-#windSpeedValue {
+#debugControls span {
     font-weight: bold;
     font-family: monospace;
     font-size: 0.9em;
-    min-width: 30px;
+    min-width: 35px;
+}
+
+/* Utility class to hide elements */
+.hidden {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+    pointer-events: none;
 }
 
 
 /* --- Buttons --- */
 button {
-    padding: 6px 12px;
-    font-size: 13px;
+    padding: 8px 14px;
+    font-size: 14px;
     cursor: pointer;
     background-color: #444;
     color: white;
     border: 1px solid #666;
-    border-radius: 5px;
-    transition: background-color 0.2s;
+    border-radius: 8px;
+    transition: background-color 0.2s, transform 0.1s;
 }
 
-#stats p {
-    display: inline-block;
-    margin: 0 8px;
-    font-size: 0.95em;
-    font-weight: bold;
-    color: #f0f0f0;
+button:hover {
+    background-color: #555;
 }
 
-#formationControls span {
-    margin-right: 8px;
-}
-
-/* --- Debug Controls --*/
-#debugControls {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    background-color: rgba(0,0,0,0.3);
-    padding: 3px 8px;
-    border-radius: 5px;
-}
-
-#debugControls label {
-    font-size: 0.8em;
-}
-
-#windSpeedSlider {
-    width: 100px;
-}
-
-#windSpeedValue {
-    font-weight: bold;
-    font-family: monospace;
-    font-size: 0.9em;
-    min-width: 30px;
-}
-
-
-/* --- Buttons --- */
-button {
-    padding: 6px 12px;
-    font-size: 13px;
-    cursor: pointer;
-    background-color: #444;
-    color: white;
-    border: 1px solid #666;
-    border-radius: 5px;
-    transition: background-color 0.2s;
-}
-
-#stats p {
-    display: inline-block;
-    margin: 0 8px;
-    font-size: 0.95em;
-    font-weight: bold;
-    color: #f0f0f0;
-}
-
-#formationControls span {
-    margin-right: 8px;
-}
-
-/* --- Debug Controls --*/
-#debugControls {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    background-color: rgba(0,0,0,0.3);
-    padding: 3px 8px;
-    border-radius: 5px;
-}
-
-#debugControls label {
-    font-size: 0.8em;
-}
-
-#windSpeedSlider {
-    width: 100px;
-}
-
-#windSpeedValue {
-    font-weight: bold;
-    font-family: monospace;
-    font-size: 0.9em;
-    min-width: 30px;
-}
-
-
-/* --- Buttons --- */
-button {
-    padding: 6px 12px;
-    font-size: 13px;
-    cursor: pointer;
-    background-color: #444;
-    color: white;
-    border: 1px solid #666;
-    border-radius: 5px;
-    transition: background-color 0.2s;
-}
-
-#stats p {
-    display: inline-block;
-    margin: 0 8px; /* Reduced margin */
-    font-size: 0.95em; /* Slightly smaller */
-    font-weight: bold;
-    color: #f0f0f0;
-}
-
-#formationControls span {
-    margin-right: 8px; /* Reduced margin */
-}
-
-/* --- Debug Controls --*/
-#debugControls {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 5px; /* Reduced gap */
-    background-color: rgba(0,0,0,0.3);
-    padding: 3px 8px; /* Reduced padding */
-    border-radius: 5px;
-}
-
-#debugControls label {
-    font-size: 0.8em; /* Reduced font size */
-}
-
-#windSpeedSlider {
-    width: 100px; /* Reduced width */
-}
-
-#windSpeedValue {
-    font-weight: bold;
-    font-family: monospace;
-    font-size: 0.9em; /* Reduced font size */
-    min-width: 30px;
-}
-
-
-/* --- Buttons --- */
-button {
-    padding: 6px 12px; /* Reduced padding */
-    font-size: 13px; /* Reduced font size */
-    cursor: pointer;
-    background-color: #444;
-    color: white;
-    border: 1px solid #666;
-    border-radius: 5px;
-    transition: background-color 0.2s;
+button:active {
+    transform: translateY(1px);
+    background-color: #333;
 }
 
 /* --- Overlays --- */

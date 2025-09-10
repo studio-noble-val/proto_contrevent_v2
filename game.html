@@ -7,30 +7,36 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="top-bar">
-        <div id="time-container">
-            Temps : <span id="time-display">00:00</span>
-        </div>
-        <div id="formationControls">
-            <span>Formation: </span>
-            <button class="formationButton active" data-formation="none">Vrac</button>
-            <button class="formationButton" data-formation="triangle">Triangle</button>
-            <button class="formationButton" data-formation="turtle">Tortue</button>
-            <button class="formationButton" data-formation="line">Ligne</button>
-        </div>
-        <div id="score-container" title="Le score de base est de 10 000 points. Chaque seconde passée vous coûte 10 points.">
-            Score : <span id="score-display">10000</span>
-        </div>
-    </div>
     <canvas id="gameCanvas"></canvas>
 
+    <!-- The new, consolidated UI bar -->
     <div id="ui-bar">
-        
-        <div id="actions">
-            <button id="pauseButton">Pause</button>
-            <button id="giveUpButton">It's Too Hard</button>
+        <div class="ui-section" id="game-info-left">
+            <div id="time-container">Temps : <span id="time-display">00:00</span></div>
+            <div id="score-container" title="Le score de base est de 10 000 points. Chaque seconde passée vous coûte 10 points.">Score : <span id="score-display">10000</span></div>
         </div>
+
+        <div class="ui-section" id="game-actions-center">
+            <div id="formationControls">
+                <span>Formation: </span>
+                <button class="formationButton active" data-formation="none">Vrac</button>
+                <button class="formationButton" data-formation="triangle">Triangle</button>
+                <button class="formationButton" data-formation="turtle">Tortue</button>
+                <button class="formationButton" data-formation="line">Ligne</button>
+            </div>
+        </div>
+
+        <div class="ui-section" id="game-controls-right">
+            <button id="pauseButton">Pause</button>
+            <button id="debug-toggle-button">Debug</button>
+            <button id="giveUpButton">Abandonner</button>
+        </div>
+    </div>
+
+    <!-- The debug panel, now separate and hidden by default -->
+    <div id="debug-panel" class="hidden">
         <div id="debugControls">
+            <!-- All the sliders and inputs remain here -->
             <div>
                 <label for="windSpeedSlider">Amplificateur Vent:</label>
                 <input type="range" id="windSpeedSlider" min="0" max="100" value="45" step="1" title="Multiplicateur global de la force du vent. Affecte la puissance de toutes les sources de vent.">
@@ -78,6 +84,7 @@
         </div>
     </div>
 
+    <!-- Other overlays and popups -->
     <div id="pauseIndicator">PAUSED</div>
 
     <div id="narrativeEvent">

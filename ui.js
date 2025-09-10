@@ -141,6 +141,11 @@ function setupEventListeners() {
             window.location.href = 'index.html';
         }
     });
+
+    document.getElementById("debug-toggle-button").addEventListener("click", () => {
+        const debugPanel = document.getElementById("debug-panel");
+        debugPanel.classList.toggle("hidden");
+    });
 }
 
 function handleTooltip(e) {
