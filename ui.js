@@ -38,6 +38,12 @@ function setupEventListeners() {
     // --- Slider de zone de victoire ---
     setupSlider("victoryZoneSlider", "victoryZoneValue", state, "victoryZoneSize", true, 1);
 
+    // --- Sliders de rythme du vent ---
+    setupSlider("baseIntervalSlider", "baseIntervalValue", state.windTempoParams, "baseInterval", false, 0);
+    setupSlider("rhythmFrequencySlider", "rhythmFrequencyValue", state.windTempoParams, "rhythmFrequency", true, 2);
+    setupSlider("rhythmAmplitudeSlider", "rhythmAmplitudeValue", state.windTempoParams, "rhythmAmplitude", false, 0);
+    setupSlider("noiseInfluenceSlider", "noiseInfluenceValue", state.windTempoParams, "noiseInfluence", true, 2);
+
 
     const windSlider = document.getElementById('windSpeedSlider');
     const windValueSpan = document.getElementById('windSpeedValue');
@@ -188,16 +194,20 @@ function setFormation(formation) {
     }
 }
 
-function showHexInspector(x, y) {
-    const hexCoords = pixelToHex(x, y);
+function showHexInspector(e) {
+    const worldCoords = camera.getTransformedCoords(e.clientX, e.clientY);
+    const hexCoords = pixelToHex(worldCoords.x, worldCoords.y);
+
     if (hexCoords.r < 0 || hexCoords.r >= state.grid.length || hexCoords.c < 0 || hexCoords.c >= state.grid[0].length) return;
     const cell = state.grid[hexCoords.r][hexCoords.c];
     const popup = document.getElementById('hex-inspector-popup');
     document.getElementById('inspector-altitude').textContent = cell.relief.toFixed(3);
     document.getElementById('inspector-wind-speed').textContent = cell.wind.masse.toFixed(3);
     document.getElementById('inspector-wind-pressure').textContent = (cell.wind.masse * cell.wind.masse * 0.5).toFixed(3);
-    popup.style.left = `${x + 15}px`;
-    popup.style.top = `${y + 15}px`;
+    
+    // Position the popup using screen coordinates from the event
+    popup.style.left = `${e.clientX + 15}px`;
+    popup.style.top = `${e.clientY + 15}px`;
     popup.style.display = 'block';
 }
 

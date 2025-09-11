@@ -86,7 +86,10 @@ Les développements futurs se concentreront sur l'ajout de boucles de gameplay, 
 
 ### 4.3. Interface et Expérience Utilisateur
 - **Refonte de l'UI :** Corriger les problèmes de style et améliorer le design global de l'interface de jeu.
-- **Système de Cartes :** Développer le système de création, sauvegarde et chargement de cartes, comme initialement prévu.
+    - **Système de Cartes :** Développer le système de création, sauvegarde et chargement de cartes, comme initialement prévu.
+
+- **Problèmes Connus (UX) :**
+    - **Infobulles et Inspecteur :** Les infobulles des personnages et l'inspecteur de cellules ne fonctionnent pas correctement (décalage, erreurs) lors de l'utilisation du zoom et du panoramique. Une refactorisation de la gestion des coordonnées et des événements de la souris est à prévoir pour corriger ce problème de manière robuste.
 
 ## 5. Feuille de Route (Version 0.3 - En cours)
 

@@ -1,3 +1,4 @@
+import { PerlinNoise } from './perlin.js';
 import { state } from './state.js';
 import * as grid from './grid.js';
 import * as horde from './horde.js';
@@ -101,8 +102,30 @@ function gameLoop() {
 }
 
 function update() {
+    const now = performance.now();
     state.time += 0.005;
-    wind.updateWind();
+
+    // --- Dynamic Wind Update ---
+    const tempo = state.windTempoParams;
+    
+    // 1. Base rhythm from a sine wave
+    const sineWave = Math.sin(state.time * tempo.rhythmFrequency);
+    const rhythmOffset = sineWave * tempo.rhythmAmplitude;
+
+    // 2. Organic variation from Perlin noise
+    const noise = PerlinNoise.noise(state.time * 0.1, 100); // Using a different time scale/seed for variety
+    const noiseOffset = (noise * tempo.rhythmAmplitude / 2) * tempo.noiseInfluence;
+
+    // 3. Calculate the final interval for this moment
+    const currentInterval = Math.max(50, tempo.baseInterval + rhythmOffset + noiseOffset); // Clamp to a minimum interval
+
+    // 4. Check if it's time to update the wind
+    if (now - state.lastWindUpdateTime > currentInterval) {
+        wind.updateWind();
+        state.lastWindUpdateTime = now;
+    }
+    // --- End of Dynamic Wind Update ---
+
     horde.moveHorde();
     horde.resolveCollisions();
     wind.applyWindEffects();

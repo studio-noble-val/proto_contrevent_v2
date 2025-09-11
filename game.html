@@ -71,6 +71,28 @@
                 <input type="range" id="victoryZoneSlider" min="1" max="5" value="2" step="0.1" title="Définit le multiplicateur de taille pour la zone de victoire.">
                 <span id="victoryZoneValue">2.0</span>
             </div>
+            <hr>
+            <h4>Rythme du Vent</h4>
+            <div>
+                <label for="baseIntervalSlider">Tempo (ms/pas):</label>
+                <input type="range" id="baseIntervalSlider" min="5" max="300" value="5" step="10" title="Intervalle de base entre chaque pas de propagation du vent. Une valeur basse accélère le vent.">
+                <span id="baseIntervalValue">250</span>
+            </div>
+            <div>
+                <label for="rhythmFrequencySlider">Fréq. Rythme:</label>
+                <input type="range" id="rhythmFrequencySlider" min="0" max="1" value="0.1" step="0.01" title="Vitesse de la 'respiration' du vent (cycle d'accélération/décélération).">
+                <span id="rhythmFrequencyValue">0.10</span>
+            </div>
+            <div>
+                <label for="rhythmAmplitudeSlider">Ampl. Rythme (ms):</label>
+                <input type="range" id="rhythmAmplitudeSlider" min="0" max="500" value="100" step="10" title="Amplitude de la variation de vitesse. À combien de millisecondes le rythme peut dévier du tempo de base.">
+                <span id="rhythmAmplitudeValue">100</span>
+            </div>
+            <div>
+                <label for="noiseInfluenceSlider">Influence Bruit:</label>
+                <input type="range" id="noiseInfluenceSlider" min="0" max="1" value="0.5" step="0.05" title="Quantité de variation chaotique (bruit de Perlin) ajoutée au rythme de base.">
+                <span id="noiseInfluenceValue">0.50</span>
+            </div>
         </div>
     </div>
 

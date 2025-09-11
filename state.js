@@ -20,4 +20,11 @@ export const state = {
         randomness: 0.05,
     },
     selectionRect: { startX: 0, startY: 0, currentX: 0, currentY: 0 },
+    lastWindUpdateTime: 0,
+    windTempoParams: {
+        baseInterval: 5, // ms
+        rhythmFrequency: 0.1,
+        rhythmAmplitude: 100, // ms
+        noiseInfluence: 0.5,
+    },
 };
