@@ -75,8 +75,8 @@ export function updateWind() {
             if (neighbors.length === 0) continue;
 
             const weights = neighbors.map(n => {
-                const reliefCost = state.grid[n.r][n.c].relief * (state.windParams.reliefPenalty || 1.5);
-                const randomFactor = Math.random() * (state.windParams.randomness || 0.5);
+                const reliefCost = state.grid[n.r][n.c].relief * state.windParams.reliefPenalty;
+                const randomFactor = Math.random() * state.windParams.randomness;
                 return {
                     neighbor: n,
                     weight: 1 / (1 + reliefCost) + randomFactor

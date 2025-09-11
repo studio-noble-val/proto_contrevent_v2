@@ -15,6 +15,9 @@ export const state = {
     score: 0,
     venturiEnabled: true,
     victoryZoneSize: 2,
-    windParams: {},
+    windParams: {
+        reliefPenalty: 1.5,
+        randomness: 0.05,
+    },
     selectionRect: { startX: 0, startY: 0, currentX: 0, currentY: 0 },
 };

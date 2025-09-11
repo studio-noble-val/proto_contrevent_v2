@@ -32,7 +32,7 @@ export function initGrid(reliefGrid, windSources) {
         const gridCols = Math.ceil(canvas.width / GRID_HORIZ_SPACING) + 2;
         const gridRows = Math.ceil(canvas.height / GRID_VERT_SPACING) + 1;
         state.grid = [];
-        const reliefScale = 20; // Smoother terrain
+        const reliefScale = 10; // More varied terrain
         for (let r = 0; r < gridRows; r++) {
             state.grid[r] = [];
             for (let c = 0; c < gridCols; c++) {

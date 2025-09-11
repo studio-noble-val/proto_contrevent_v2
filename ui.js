@@ -32,10 +32,8 @@ function setupEventListeners() {
     // --- Sliders de contrôle du vent ---
     setupSlider("windSourceScaleSlider", "windSourceScaleValue", state.windParams, "sourceScale", false, 0);
     setupSlider("maxMasseSlider", "maxMasseValue", state.windParams, "maxMasse", true, 1);
-    setupSlider("minCeleriteSlider", "minCeleriteValue", state.windParams, "minCelerite", true, 2);
-    setupSlider("maxCeleriteSlider", "maxCeleriteValue", state.windParams, "maxCelerite", true, 2);
-    setupSlider("dissipationSlider", "dissipationValue", state.windParams, "dissipation", true, 2);
-    setupSlider("fadingSlider", "fadingValue", state.windParams, "fading", true, 3);
+    setupSlider("reliefPenaltySlider", "reliefPenaltyValue", state.windParams, "reliefPenalty", true, 1);
+    setupSlider("randomnessSlider", "randomnessValue", state.windParams, "randomness", true, 2);
 
     // --- Slider de zone de victoire ---
     setupSlider("victoryZoneSlider", "victoryZoneValue", state, "victoryZoneSize", true, 1);
