@@ -4,7 +4,7 @@ const PAN_SPEED = 15;
 const ZOOM_SPEED = 1.1;
 
 const camera = {
-    zoomLevel: 1,
+    zoomLevel: 0.6,
     offset: { x: 0, y: 0 },
     isPanning: false,
     lastPanPosition: { x: 0, y: 0 },

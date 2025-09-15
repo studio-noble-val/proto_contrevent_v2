@@ -75,27 +75,36 @@ export function drawShadows() {
     state.horde.forEach(caster => {
         const hexCoords = pixelToHex(caster.x, caster.y);
         if (hexCoords.r < 0 || hexCoords.r >= state.grid.length || hexCoords.c < 0 || hexCoords.c >= state.grid[0].length) {
-            return;
+            return; // Character is off-grid
         }
+
         const wind = state.grid[hexCoords.r][hexCoords.c].wind;
-        if (wind.masse <= 0.02) return; // Use a small threshold like the grid wind display
+        let windDirection;
+        let opacityModifier = 1.0; // Full opacity for active shadow
+
+        if (wind.masse <= 0.02) {
+            // No significant wind, draw a default, more transparent shadow
+            windDirection = Math.PI; // Default direction: from right to left
+            opacityModifier = 0.3; // Make it more subtle
+        } else {
+            // Active wind, use its direction
+            windDirection = wind.direction;
+        }
 
         const shadowLength = caster.strength * 1.5;
-        // The cone's angle now varies more noticeably with endurance.
-        const shadowAngle = (caster.endurance / 100) * (Math.PI / 4); // Base angle is now 45 degrees
+        const shadowAngle = (caster.endurance / 100) * (Math.PI / 4);
         const protection = caster.strength / 200;
 
-        // Increased opacity for better visibility.
-        ctx.fillStyle = `rgba(20, 20, 20, ${protection * 0.6})`; 
+        ctx.fillStyle = `rgba(20, 20, 20, ${protection * 0.6 * opacityModifier})`;
 
         const p1 = { x: caster.x, y: caster.y };
         const p2 = {
-            x: caster.x + shadowLength * Math.cos(wind.direction - shadowAngle / 2),
-            y: caster.y + shadowLength * Math.sin(wind.direction - shadowAngle / 2)
+            x: caster.x + shadowLength * Math.cos(windDirection - shadowAngle / 2),
+            y: caster.y + shadowLength * Math.sin(windDirection - shadowAngle / 2)
         };
         const p3 = {
-            x: caster.x + shadowLength * Math.cos(wind.direction + shadowAngle / 2),
-            y: caster.y + shadowLength * Math.sin(wind.direction + shadowAngle / 2)
+            x: caster.x + shadowLength * Math.cos(windDirection + shadowAngle / 2),
+            y: caster.y + shadowLength * Math.sin(windDirection + shadowAngle / 2)
         };
 
         ctx.beginPath();
