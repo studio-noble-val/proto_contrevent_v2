@@ -101,6 +101,7 @@ export function updateWind() {
 
             const targetCellInBuffer = nextWindGrid[targetNeighbor.r][targetNeighbor.c];
             
+            // Fusionner avec le vent existant dans le tampon (si une autre bourrasque arrive au même endroit)
             if (targetCellInBuffer.masse > 0) {
                 const totalMasse = targetCellInBuffer.masse + newMasse;
                 const avgDir = Math.atan2(
@@ -114,6 +115,16 @@ export function updateWind() {
                 targetCellInBuffer.direction = newDirection;
             }
             targetCellInBuffer.celerite = currentCell.wind.celerite;
+
+            // --- NOUVELLE LOGIQUE : Laisser une "traînée" pour allonger la bourrasque ---
+            const tailMasse = currentCell.wind.masse * 0.3; // La traînée est 30% de la masse originale
+            const currentCellInBuffer = nextWindGrid[r][c];
+            if (currentCellInBuffer.masse < tailMasse) { // Ne pas remplacer une bourrasque plus forte qui arriverait là
+                currentCellInBuffer.masse = tailMasse;
+                currentCellInBuffer.direction = currentCell.wind.direction;
+                currentCellInBuffer.celerite = currentCell.wind.celerite;
+            }
+            // --- FIN DE LA NOUVELLE LOGIQUE ---
         }
     }
 

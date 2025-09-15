@@ -18,9 +18,7 @@ const state = {
     intensity: 0.05,
     isPainting: false,
     isPanning: false,
-    isDragging: false,
     lastPanPosition: { x: 0, y: 0 },
-    panelOffset: { x: 0, y: 0 },
     brushMode: 'paint',
     zoomLevel: 1,
     cameraOffset: { x: 0, y: 0 },
@@ -32,11 +30,12 @@ const state = {
 };
 
 // --- DOM Elements ---
-let canvas, ctx, brushSizeInput, altitudeInput, intensityInput, toolButtons, paintToolOptionsPanel, sculptToolOptionsPanel, mapRowsInput, mapColsInput, editorPanel, panelHeader, mapNameInput, mapOrderInput;
+let canvas, ctx, brushSizeInput, altitudeInput, intensityInput, toolButtons, paintToolOptionsPanel, sculptToolOptionsPanel, mapRowsInput, mapColsInput, editorSidebar, panelHeader, mapNameInput, mapOrderInput, canvasContainer, saveButton, loadFileButton, resizeButton, backToMenuButton;
 
 // --- Initialization ---
 function init() {
     // Get DOM elements
+    canvasContainer = document.getElementById('canvas-container');
     canvas = document.getElementById('editor-canvas');
     ctx = canvas.getContext('2d');
     brushSizeInput = document.getElementById('brush-size');
@@ -47,10 +46,14 @@ function init() {
     sculptToolOptionsPanel = document.getElementById('sculpt-tool-options');
     mapRowsInput = document.getElementById('map-rows');
     mapColsInput = document.getElementById('map-cols');
-    editorPanel = document.getElementById('editor-panel');
+    editorSidebar = document.getElementById('editor-sidebar');
     panelHeader = document.getElementById('panel-header');
     mapNameInput = document.getElementById('map-name');
     mapOrderInput = document.getElementById('map-order');
+    resizeButton = document.getElementById('resize-button');
+    saveButton = document.getElementById('save-button');
+    loadFileButton = document.getElementById('load-file-button');
+    backToMenuButton = document.getElementById('back-to-menu');
 
     state.intensity = INTENSITY_LEVELS[intensityInput.value];
     state.mapName = mapNameInput.value;
@@ -62,8 +65,9 @@ function init() {
 }
 
 function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = canvasContainer.clientWidth;
+    canvas.height = canvasContainer.clientHeight;
+    focusOnGrid(); // Re-center and zoom when window resizes
     drawGrid();
 }
 
@@ -74,6 +78,7 @@ function setupEventListeners() {
     brushSizeInput.addEventListener('change', e => state.brushSize = parseInt(e.target.value, 10));
     altitudeInput.addEventListener('input', e => state.altitude = parseFloat(e.target.value));
     intensityInput.addEventListener('input', e => state.intensity = INTENSITY_LEVELS[e.target.value]);
+    backToMenuButton.addEventListener('click', () => window.location.href = 'index.html');
 
     // Tool selection
     toolButtons.forEach(button => {
@@ -81,20 +86,19 @@ function setupEventListeners() {
             toolButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
             state.brushMode = button.dataset.tool;
-            const isTerrainTool = ['paint', 'raise', 'lower'].includes(state.brushMode);
             paintToolOptionsPanel.style.display = state.brushMode === 'paint' ? 'block' : 'none';
             sculptToolOptionsPanel.style.display = ['raise', 'lower'].includes(state.brushMode) ? 'block' : 'none';
         });
     });
 
     // Map management
-    document.getElementById('resize-button').addEventListener('click', () => {
+    resizeButton.addEventListener('click', () => {
         const rows = parseInt(mapRowsInput.value, 10);
         const cols = parseInt(mapColsInput.value, 10);
         if (rows && cols) createNewGrid(rows, cols);
     });
-    document.getElementById('save-button').addEventListener('click', saveMap);
-    document.getElementById('load-file-button').addEventListener('click', loadMapFromFile);
+    saveButton.addEventListener('click', saveMap);
+    loadFileButton.addEventListener('click', loadMapFromFile);
 
     // Mouse listeners for canvas
     canvas.addEventListener('mousedown', e => {
@@ -110,23 +114,13 @@ function setupEventListeners() {
         }
     });
 
-    // Draggable panel listeners
-    panelHeader.addEventListener('mousedown', e => {
-        state.isDragging = true;
-        state.panelOffset = { x: e.clientX - editorPanel.offsetLeft, y: e.clientY - editorPanel.offsetTop };
-    });
-
     window.addEventListener('mouseup', e => {
         state.isPainting = false;
         state.isPanning = false;
-        state.isDragging = false;
     });
 
     window.addEventListener('mousemove', e => {
-        if (state.isDragging) {
-            editorPanel.style.left = `${e.clientX - state.panelOffset.x}px`;
-            editorPanel.style.top = `${e.clientY - state.panelOffset.y}px`;
-        } else if (state.isPanning) {
+        if (state.isPanning) {
             const dx = e.clientX - state.lastPanPosition.x;
             const dy = e.clientY - state.lastPanPosition.y;
             state.cameraOffset.x += dx;
@@ -153,38 +147,53 @@ function setupEventListeners() {
 
     // Keyboard listeners
     window.addEventListener('keydown', e => {
-        switch(e.key.toLowerCase()) {
-            case 'w': case 'arrowup': state.cameraOffset.y += PAN_SPEED; break;
-            case 's': case 'arrowdown': state.cameraOffset.y -= PAN_SPEED; break;
-            case 'a': case 'arrowleft': state.cameraOffset.x += PAN_SPEED; break;
-            case 'd': case 'arrowright': state.cameraOffset.x -= PAN_SPEED; break;
-            case '+': case '=': state.zoomLevel = Math.min(5, state.zoomLevel * ZOOM_SPEED); break;
-            case '-': state.zoomLevel = Math.max(0.2, state.zoomLevel / ZOOM_SPEED); break;
-            default: return;
+        const activeEl = document.activeElement;
+        if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT')) {
+            return; // Ignore shortcuts if typing in an input field
         }
-        drawGrid();
-        e.preventDefault();
+
+        let handled = true;
+        switch(e.key) { // Use e.key directly for PageUp/PageDown
+            case 'ArrowUp':    state.cameraOffset.y += PAN_SPEED; break;
+            case 'ArrowDown':  state.cameraOffset.y -= PAN_SPEED; break;
+            case 'ArrowLeft':  state.cameraOffset.x += PAN_SPEED; break;
+            case 'ArrowRight': state.cameraOffset.x -= PAN_SPEED; break;
+            case 'PageUp':     state.zoomLevel = Math.min(5, state.zoomLevel * ZOOM_SPEED); break;
+            case 'PageDown':   state.zoomLevel = Math.max(0.2, state.zoomLevel / ZOOM_SPEED); break;
+            default:
+                handled = false;
+                return; // Exit if not a handled key
+        }
+
+        if (handled) {
+            e.preventDefault();
+            drawGrid();
+        }
     });
 
     window.addEventListener('resize', resizeCanvas);
 }
 
 function slugify(text) {
+    const a = 'àáâäæãåāăąçćčđďèéêëēėęěğǵḧîïíīįìłḿñńǹňôöòóœøōõőṕŕřßśšşșťțûüùúūǘůűųẃẍÿýžźż·/_,:;'
+    const b = 'aaaaaaaaaacccddeeeeeeeegghiiiiiilmnnnnoooooooooprrsssssttuuuuuuuuuwxyyzzz------'
+    const p = new RegExp(a.split('').join('|'), 'g')
+
     return text.toString().toLowerCase()
-        .replace(/\s+/g, '_')           // Replace spaces with _
-        .replace(/[̀-ͯ]/g, '') // remove accents
-        .replace(/[^ -ɏḀ-ỿⱠ-Ɀ꜠-ꟿ]/g, '') // remove non-alphanumeric chars
-        .replace(/&/g, '-and-')         // replace & with '-and-'
-        .replace(/[^ -ɏḀ-ỿⱠ-Ɀ꜠-ꟿ_]/g, '') // remove special chars
-        .replace(/_/g, '_')             // replace _ with _
-        .replace(/__+/g, '_');          // replace multiple _ with single _
+        .replace(/\s+/g, '-') // Replace spaces with -
+        .replace(p, c => b.charAt(a.indexOf(c))) // Replace special characters
+        .replace(/&/g, '-and-') // Replace & with 'and'
+        .replace(/[^\w\-]+/g, '') // Remove all non-word chars
+        .replace(/--+/g, '-') // Replace multiple - with single -
+        .replace(/^-+/, '') // Trim - from start of text
+        .replace(/-+$/, '') // Trim - from end of text
 }
 
 // --- Save/Load Logic ---
 function saveMap() {
     const mapData = {
         name: state.mapName,
-        order: state.mapOrder,
+        order: parseInt(state.mapOrder, 10),
         completed: false,
         relief: state.grid.map(row => row.map(cell => parseFloat(cell.relief.toFixed(3)))),
         spawnPoint: state.spawnPoint,
@@ -239,6 +248,8 @@ function loadMapFromFile() {
                 mapColsInput.value = state.grid[0].length;
                 mapNameInput.value = state.mapName;
                 mapOrderInput.value = state.mapOrder;
+                
+                focusOnGrid(); // Center and zoom on the loaded grid
                 drawGrid();
                 alert("Carte chargée avec succès !");
             } catch (error) {
@@ -323,7 +334,30 @@ function createNewGrid(rows, cols) {
             state.grid[r][c] = { relief: 0.5 };
         }
     }
+    focusOnGrid(); // Center and zoom on the new grid
     drawGrid();
+}
+
+function focusOnGrid() {
+    if (!state.grid || state.grid.length === 0 || !state.grid[0]) return;
+
+    const gridCols = state.grid[0].length;
+    const gridRows = state.grid.length;
+
+    // Calculate the total pixel dimensions of the grid
+    const gridPixelWidth = gridCols * GRID_HORIZ_SPACING + (GRID_HORIZ_SPACING / 2);
+    const gridPixelHeight = gridRows * GRID_VERT_SPACING + (GRID_VERT_SPACING / 3);
+
+    // Calculate the zoom level needed to fit the grid, with a 10% margin
+    const zoomX = canvas.width / gridPixelWidth;
+    const zoomY = canvas.height / gridPixelHeight;
+    state.zoomLevel = Math.min(zoomX, zoomY) * 0.9;
+
+    // Center the grid
+    const centeredGridWidth = gridPixelWidth * state.zoomLevel;
+    const centeredGridHeight = gridPixelHeight * state.zoomLevel;
+    state.cameraOffset.x = (canvas.width - centeredGridWidth) / 2;
+    state.cameraOffset.y = (canvas.height - centeredGridHeight) / 2;
 }
 
 // --- Drawing & Conversion Logic ---

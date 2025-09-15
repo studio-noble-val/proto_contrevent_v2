@@ -52,33 +52,56 @@ async function loadMap(mapUrl) {
 
 async function init() {
     state.startTime = performance.now();
+
+    // 1. Set up canvas to full screen size BEFORE initializing modules
+    resizeCanvas(); 
     
+    // 2. Set up canvas and context for all modules that need it
+    grid.init(canvas, ctx);
+    horde.init(canvas, ctx);
+    camera.init(canvas, ctx);
+    ui.init(canvas);
+
+    // 3. Determine game mode and load/create map data
     const urlParams = new URLSearchParams(window.location.search);
     const mapFile = urlParams.get('map');
     const mode = urlParams.get('mode');
 
     if (mapFile) {
-        // Campaign mode: load a specific map
+        // --- CAMPAIGN MODE ---
         state.currentMap = mapFile;
         await loadMap(`maps/${mapFile}`);
-    } else if (mode === 'survie') {
-        // Survival mode: trigger procedural generation
-        state.currentMap = 'procedural-survival';
-        await loadMap(null); // Passing null will trigger the procedural path
+        grid.initGrid(state.grid, state.windSources);
+        horde.initHorde(state.spawnPoint);
+        gameplay.init(canvas, ctx, state.flagPosition);
     } else {
-        // Default behavior: load a default map
-        state.currentMap = 'default.json';
-        await loadMap('maps/default.json');
+        // --- SURVIVAL or DEFAULT MODE ---
+        if (mode === 'survie') {
+            state.currentMap = 'procedural-survival';
+            await loadMap(null); // Creates a placeholder grid
+        } else {
+            state.currentMap = 'default.json';
+            await loadMap('maps/default.json');
+        }
+        
+        // Procedurally generate grid if no map was loaded (now uses correct canvas size)
+        grid.initGrid(state.grid, state.windSources);
+
+        // Define spawn/flag points specifically for survival mode
+        if (mode === 'survie') {
+            const gridRows = state.grid.length;
+            const gridCols = state.grid[0].length;
+
+            // Horde spawn: Top-left corner (Aval Nord)
+            state.spawnPoint = { r: 1, c: 1 };
+
+            // Victory flag: Bottom-right corner (Amont Sud)
+            state.flagPosition = { r: gridRows - 2, c: gridCols - 2 };
+        }
+
+        horde.initHorde(state.spawnPoint); // Uses default if spawnPoint is still null
+        gameplay.init(canvas, ctx, state.flagPosition); // Uses default if flagPosition is still null
     }
-
-    // Initialize modules with loaded data
-    grid.init(canvas, ctx);
-    horde.init(canvas, ctx);
-    ui.init(canvas);
-    gameplay.init(canvas, ctx, state.flagPosition);
-    camera.init(canvas, ctx);
-
-    resizeCanvas(); // This will call initGrid, initHorde, etc.
     
     gameLoop();
 }
@@ -86,9 +109,7 @@ async function init() {
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    // Initialize systems with map data
-    grid.initGrid(state.grid, state.windSources);
-    horde.initHorde(state.spawnPoint);
+    // Redrawing will be handled by the game loop
 }
 
 window.addEventListener('resize', resizeCanvas);

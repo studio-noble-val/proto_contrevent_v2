@@ -100,12 +100,21 @@ export function checkVictoryCondition() {
 
         victoryScreen.style.display = 'flex';
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const isSurvivalMode = urlParams.get('mode') === 'survie';
+
         document.getElementById('continue-button').onclick = () => {
-            // For now, reloads the page to simulate a new level
-            window.location.href = 'campaign.html'; // Go back to map list
+            if (isSurvivalMode) {
+                // In survival, regenerate a new map
+                window.location.href = 'game.html?mode=survie';
+            } else {
+                // In campaign, go back to the map list
+                window.location.href = 'campaign.html';
+            }
         };
         document.getElementById('main-menu-button').onclick = () => {
-            window.location.href = 'campaign.html';
+            // Always go back to the main index page
+            window.location.href = 'index.html';
         };
     }
 }
