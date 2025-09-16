@@ -2,6 +2,7 @@ import { state } from './state.js';
 import { getCharacterAt, setGroupTarget } from './horde.js';
 import { pixelToHex } from './grid.js';
 import * as camera from './camera.js';
+import { slugify } from './utils.js';
 
 let canvas;
 let ctx;
@@ -155,6 +156,43 @@ function setupEventListeners() {
         const debugPanel = document.getElementById("debug-panel");
         debugPanel.classList.toggle("hidden");
     });
+
+    const saveParamsButton = document.getElementById('saveWindParamsButton');
+    if (state.currentMap && state.currentMap.endsWith('.json')) {
+        saveParamsButton.style.display = 'block';
+        saveParamsButton.addEventListener('click', async () => {
+            try {
+                const response = await fetch('maps/' + state.currentMap);
+                if (!response.ok) throw new Error('Impossible de charger le fichier de carte original.');
+                
+                const mapData = await response.json();
+
+                // Update parameters
+                mapData.windParams = state.windParams;
+                mapData.windTempoParams = state.windTempoParams;
+                mapData.globalWindMultiplier = state.globalWindMultiplier;
+
+                // Trigger download
+                const filename = state.currentMap;
+                const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                alert('Les paramètres du vent ont été sauvegardés dans le fichier ' + filename + '.\nN'oubliez pas de remplacer l'ancien fichier de carte par celui que vous venez de télécharger.');
+
+            } catch (error) {
+                console.error("Erreur lors de la sauvegarde des paramètres de vent:", error);
+                alert("Erreur : " + error.message);
+            }
+        });
+    } else {
+        saveParamsButton.style.display = 'none';
+    }
 }
 
 function handleTooltip(e) {

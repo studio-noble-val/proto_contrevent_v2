@@ -231,9 +231,9 @@ L'objectif est d'intégrer une simulation de vent interactive et configurable di
 - **Interface de Configuration :** Intégrer les contrôles de débogage du vent (force, vitesse, etc.) du mode jeu dans l'éditeur. (Terminé)
 - **Sauvegarde & Chargement :** Adapter le format de sauvegarde des cartes (`.json`) pour inclure ces nouveaux paramètres et assurer la compatibilité. (Terminé)
 
-### 8.3. Étape 3 : Sauvegarde des Paramètres depuis le Jeu
-- **Bouton "Sauvegarder" en Jeu :** En mode "Campagne", ajouter un bouton pour sauvegarder les ajustements des paramètres du vent.
-- **Mécanisme de Sauvegarde Sécurisé :** La sauvegarde générera un nouveau fichier de carte mis à jour à télécharger, que l'utilisateur devra manuellement utiliser pour remplacer l'ancien.
+### 8.3. Étape 3 : Sauvegarde des Paramètres depuis le Jeu (Terminée)
+- **Bouton "Sauvegarder" en Jeu :** En mode "Campagne", ajouter un bouton pour sauvegarder les ajustements des paramètres du vent. (Terminé)
+- **Mécanisme de Sauvegarde Sécurisé :** La sauvegarde générera un nouveau fichier de carte mis à jour à télécharger, que l'utilisateur devra manuellement utiliser pour remplacer l'ancien. (Terminé)
 
 ### 8.4. Étape 4 : Architecture "Multi-pistes" & Groupes
 - **4a. Paramètres par Source :** Modifier la structure de données pour que chaque source de vent ait ses propres réglages (`windParams`, `windTempoParams`). L'interface de l'éditeur modifiera les paramètres de la source sélectionnée.
