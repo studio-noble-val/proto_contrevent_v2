@@ -142,14 +142,14 @@ function update() {
 
     // 4. Check if it's time to update the wind
     if (now - state.lastWindUpdateTime > currentInterval) {
-        wind.updateWind();
+        wind.updateWind(state);
         state.lastWindUpdateTime = now;
     }
     // --- End of Dynamic Wind Update ---
 
     horde.moveHorde();
     horde.resolveCollisions();
-    wind.applyWindEffects();
+    wind.applyWindEffects(state);
     ui.updateTopBar();
     gameplay.checkVictoryCondition();
 }

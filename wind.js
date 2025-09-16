@@ -1,4 +1,3 @@
-import { state } from './state.js';
 import { PerlinNoise } from './perlin.js';
 import { pixelToHex } from './grid.js';
 
@@ -34,7 +33,7 @@ function getDownstreamNeighbors(r, c, gridRows, gridCols) {
 }
 
 
-export function updateWind() {
+export function updateWind(state) {
     if (!state.grid.length || !state.grid[0].length) return;
     const gridCols = state.grid[0].length;
     const gridRows = state.grid.length;
@@ -46,21 +45,24 @@ export function updateWind() {
         direction: 0,
     })));
 
-    // 2. Génération des bourrasques aux sources (côté droit)
+    // 2. Génération des bourrasques à toutes les sources actives
     for (let r = 0; r < gridRows; r++) {
-        if (state.grid[r][gridCols - 1].isSource) {
-            // Probabilité de générer une bourrasque pour créer un effet de paquet
-            if (Math.random() > 0.6) {
-                 const noiseVal = PerlinNoise.noise(r / (state.windParams.sourceScale || 10), state.time);
-                 const masse = (noiseVal + 1) / 2 * (state.windParams.maxMasse || 1.2) * state.globalWindMultiplier;
-                
-                 state.grid[r][gridCols - 1].wind = {
-                     masse: masse,
-                     celerite: (state.windParams.minCelerite || 0.1) + (1 - masse / (state.windParams.maxMasse || 1.2)) * ((state.windParams.maxCelerite || 1.0) - (state.windParams.minCelerite || 0.1)),
-                     direction: Math.PI,
-                 };
-            } else {
-                state.grid[r][gridCols - 1].wind.masse = 0;
+        for (let c = 0; c < gridCols; c++) {
+            if (state.grid[r][c].isSource) {
+                // Probabilité de générer une bourrasque pour créer un effet de paquet
+                if (Math.random() > 0.6) {
+                    const noiseVal = PerlinNoise.noise(r / (state.windParams.sourceScale || 10), state.time);
+                    const masse = (noiseVal + 1) / 2 * (state.windParams.maxMasse || 1.2) * state.globalWindMultiplier;
+                    
+                    state.grid[r][c].wind = {
+                        masse: masse,
+                        celerite: (state.windParams.minCelerite || 0.1) + (1 - masse / (state.windParams.maxMasse || 1.2)) * ((state.windParams.maxCelerite || 1.0) - (state.windParams.minCelerite || 0.1)),
+                        direction: Math.PI, // Toujours vers la gauche pour l'instant
+                    };
+                } else {
+                    // Si pas de bourrasque, la masse est nulle
+                    state.grid[r][c].wind.masse = 0;
+                }
             }
         }
     }
@@ -136,7 +138,7 @@ export function updateWind() {
     }
 }
 
-export function applyWindEffects() {
+export function applyWindEffects(state) {
     state.horde.forEach(p => {
         const hexCoords = pixelToHex(p.x, p.y);
         if (hexCoords.r >= 0 && hexCoords.r < state.grid.length && hexCoords.c >= 0 && hexCoords.c < state.grid[0].length) {

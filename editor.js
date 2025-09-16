@@ -1,4 +1,5 @@
 import { pixelToOffset, cubeDistance, offsetToCube } from './grid-utils.js';
+import { updateWind } from './wind.js';
 
 // --- Constants ---
 const BASE_HEX_SIZE = 30;
@@ -27,10 +28,24 @@ const state = {
     windSources: [],
     mapName: 'Nouvelle Carte',
     mapOrder: 1,
+    isSimulating: false,
+    simulationFrameId: null,
+    time: 0,
+    globalWindMultiplier: 1.0,
+    // Default wind parameters (will be configurable later)
+    windParams: {
+        sourceScale: 10,
+        maxMasse: 1.2,
+        minCelerite: 0.1,
+        maxCelerite: 1.0,
+        reliefPenalty: 2.0,
+        randomness: 0.2,
+        venturiEnabled: true, // Match game state
+    },
 };
 
 // --- DOM Elements ---
-let canvas, ctx, brushSizeInput, altitudeInput, intensityInput, toolButtons, paintToolOptionsPanel, sculptToolOptionsPanel, mapRowsInput, mapColsInput, editorSidebar, panelHeader, mapNameInput, mapOrderInput, canvasContainer, saveButton, loadFileButton, resizeButton, backToMenuButton;
+let canvas, ctx, brushSizeInput, altitudeInput, intensityInput, toolButtons, paintToolOptionsPanel, sculptToolOptionsPanel, mapRowsInput, mapColsInput, editorSidebar, panelHeader, mapNameInput, mapOrderInput, canvasContainer, saveButton, loadFileButton, resizeButton, backToMenuButton, startSimButton, stopSimButton, resetSimButton;
 
 // --- Initialization ---
 function init() {
@@ -54,6 +69,9 @@ function init() {
     saveButton = document.getElementById('save-button');
     loadFileButton = document.getElementById('load-file-button');
     backToMenuButton = document.getElementById('back-to-menu');
+    startSimButton = document.getElementById('start-sim-button');
+    stopSimButton = document.getElementById('stop-sim-button');
+    resetSimButton = document.getElementById('reset-sim-button');
 
     state.intensity = INTENSITY_LEVELS[intensityInput.value];
     state.mapName = mapNameInput.value;
@@ -172,6 +190,53 @@ function setupEventListeners() {
     });
 
     window.addEventListener('resize', resizeCanvas);
+
+    // --- Simulation Controls ---
+    startSimButton.addEventListener('click', startSimulation);
+    stopSimButton.addEventListener('click', stopSimulation);
+    resetSimButton.addEventListener('click', resetSimulation);
+}
+
+// --- Simulation Logic ---
+function startSimulation() {
+    if (state.isSimulating) return;
+    state.isSimulating = true;
+    simulationLoop();
+}
+
+function stopSimulation() {
+    state.isSimulating = false;
+    if (state.simulationFrameId) {
+        cancelAnimationFrame(state.simulationFrameId);
+        state.simulationFrameId = null;
+    }
+}
+
+function resetSimulation() {
+    stopSimulation();
+    // Clear wind data from the grid
+    for (let r = 0; r < state.grid.length; r++) {
+        for (let c = 0; c < state.grid[r].length; c++) {
+            state.grid[r][c].wind = { masse: 0, celerite: 0, direction: 0 };
+        }
+    }
+    // Redraw the grid to show the cleared state
+    drawGrid();
+}
+
+function simulationLoop() {
+    if (!state.isSimulating) return;
+
+    // Update time for wind simulation
+    state.time += 0.01; // A simplified time progression
+
+    // Update wind by passing the editor's state
+    updateWind(state);
+
+    // Redraw the grid to show changes
+    drawGrid();
+
+    state.simulationFrameId = requestAnimationFrame(simulationLoop);
 }
 
 function slugify(text) {
@@ -243,7 +308,17 @@ function loadMapFromFile() {
                 if (!Array.isArray(reliefGrid) || !Array.isArray(reliefGrid[0])) {
                     throw new Error("Invalid map data format.");
                 }
-                state.grid = reliefGrid.map(row => row.map(relief => ({ relief })) );
+                state.grid = reliefGrid.map(row => row.map(relief => ({ relief, wind: { masse: 0, celerite: 0, direction: 0 }, isSource: false })) );
+                
+                // Re-apply isSource flag from loaded wind sources
+                if (state.windSources && state.windSources.length > 0) {
+                    state.windSources.forEach(source => {
+                        if (state.grid[source.r] && state.grid[source.r][source.c]) {
+                            state.grid[source.r][source.c].isSource = true;
+                        }
+                    });
+                }
+
                 mapRowsInput.value = state.grid.length;
                 mapColsInput.value = state.grid[0].length;
                 mapNameInput.value = state.mapName;
@@ -283,11 +358,14 @@ function handleCanvasClick(e) {
             state.flagPosition = clickedHex;
             break;
         case 'setWindSource':
+            const cell = state.grid[clickedHex.r][clickedHex.c];
             const existingSourceIndex = state.windSources.findIndex(s => s.r === clickedHex.r && s.c === clickedHex.c);
             if (existingSourceIndex !== -1) {
                 state.windSources.splice(existingSourceIndex, 1); // Remove if exists
+                cell.isSource = false;
             } else {
                 state.windSources.push(clickedHex); // Add if not exists
+                cell.isSource = true;
             }
             break;
     }
@@ -331,7 +409,7 @@ function createNewGrid(rows, cols) {
     for (let r = 0; r < rows; r++) {
         state.grid[r] = [];
         for (let c = 0; c < cols; c++) {
-            state.grid[r][c] = { relief: 0.5 };
+            state.grid[r][c] = { relief: 0.5, wind: { masse: 0, celerite: 0, direction: 0 }, isSource: false };
         }
     }
     focusOnGrid(); // Center and zoom on the new grid
@@ -374,7 +452,7 @@ function drawGrid() {
             const offset = (r % 2) * (GRID_HORIZ_SPACING / 2);
             const x = c * GRID_HORIZ_SPACING + offset;
             const y = r * GRID_VERT_SPACING;
-            drawHexagon(x + HEX_WIDTH / 2, y + HEX_HEIGHT / 2, state.grid[r][c].relief);
+            drawHexagon(x + HEX_WIDTH / 2, y + HEX_HEIGHT / 2, state.grid[r][c]);
         }
     }
 
@@ -410,14 +488,22 @@ function getColorForRelief(relief) {
     return colors[index] || colors[10];
 }
 
-function drawHexagon(x, y, relief) {
+function drawHexagon(x, y, cell) {
     ctx.beginPath();
     for (let i = 0; i < 6; i++) {
         ctx.lineTo(x + BASE_HEX_SIZE * Math.cos(Math.PI / 3 * i + Math.PI / 2), y + BASE_HEX_SIZE * Math.sin(Math.PI / 3 * i + Math.PI / 2));
     }
     ctx.closePath();
-    ctx.fillStyle = getColorForRelief(relief);
+    ctx.fillStyle = getColorForRelief(cell.relief);
     ctx.fill();
+
+    // --- Add wind visualization ---
+    if (cell.wind && cell.wind.masse > 0.02) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(cell.wind.masse * 0.2, 0.8)})`;
+        ctx.fill();
+    }
+    // --- End of wind visualization ---
+
     ctx.strokeStyle = '#222';
     ctx.lineWidth = 1 / state.zoomLevel;
     ctx.stroke();

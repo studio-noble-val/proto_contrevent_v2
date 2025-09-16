@@ -52,22 +52,30 @@ function setupEventListeners() {
         // Redraw will be handled by the main game loop or editor loop
     });
 
-    // Keyboard listeners
+    // Keyboard listeners (aligned with editor.js)
     window.addEventListener('keydown', e => {
-        let handled = true;
-        switch(e.key.toLowerCase()) {
-            case 'w': case 'arrowup': camera.offset.y += PAN_SPEED; break;
-            case 's': case 'arrowdown': camera.offset.y -= PAN_SPEED; break;
-            case 'a': case 'arrowleft': camera.offset.x += PAN_SPEED; break;
-            case 'd': case 'arrowright': camera.offset.x -= PAN_SPEED; break;
-            case '+': case '=': camera.zoomLevel = Math.min(5, camera.zoomLevel * ZOOM_SPEED); break;
-            case '-': camera.zoomLevel = Math.max(0.2, camera.zoomLevel / ZOOM_SPEED); break;
-            default: handled = false;
+        // Prevent interference with UI elements
+        const activeEl = document.activeElement;
+        if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT')) {
+            return;
         }
+
+        let handled = true;
+        // Use e.key for non-alphanumeric keys
+        switch(e.key) {
+            case 'ArrowUp':    camera.offset.y += PAN_SPEED; break;
+            case 'ArrowDown':  camera.offset.y -= PAN_SPEED; break;
+            case 'ArrowLeft':  camera.offset.x += PAN_SPEED; break;
+            case 'ArrowRight': camera.offset.x -= PAN_SPEED; break;
+            case 'PageUp':     camera.zoomLevel = Math.min(5, camera.zoomLevel * ZOOM_SPEED); break;
+            case 'PageDown':   camera.zoomLevel = Math.max(0.2, camera.zoomLevel / ZOOM_SPEED); break;
+            default:
+                handled = false;
+        }
+
         if (handled) {
             e.preventDefault();
-            console.log('Camera Offset/Zoom (keydown):', camera.offset.x, camera.offset.y, camera.zoomLevel);
-            // Redraw will be handled by the main game loop or editor loop
+            // Redraw is handled by the main game loop
         }
     });
 }

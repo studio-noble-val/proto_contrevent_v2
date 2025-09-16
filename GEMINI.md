@@ -216,3 +216,21 @@ L'objectif était de lier l'éditeur au jeu via un système de campagne et d'am�
 - **Chargement Dynamique :** Le jeu charge désormais la carte spécifiée via les paramètres d'URL (pour le mode Campagne).
 - **Mode Survie :** Le mode Survie déclenche maintenant correctement la génération procédurale de la carte, comme prévu.
 - **Correction de Bug :** Résolution d'une erreur de "redeclaration of import" dans `horde.js` qui empêchait le bon fonctionnement du mode Survie.
+
+## 8. Développement de la Simulation de Vent dans l'Éditeur (Branche: `feature/editor-wind-simulation`)
+
+L'objectif est d'intégrer une simulation de vent interactive et configurable directement dans l'éditeur de carte pour améliorer le processus de level design.
+
+### 8.1. Étape 1 : Simulation de Vent Basique
+- **Création de Branche Git :** Isoler le développement dans la branche `feature/editor-wind-simulation`. (Terminé)
+- **Interface Utilisateur :** Ajouter les boutons "Lancer Sim", "Stop Sim", et "Réinit Sim" à l'interface de l'éditeur.
+- **Intégration du Moteur de Vent :** Connecter le moteur de vent (`wind.js`) à l'éditeur et créer une boucle de simulation contrôlable.
+- **Visualisation :** Mettre à jour le rendu de la grille pour afficher la "masse" du vent sur les cellules, comme en jeu.
+
+### 8.2. Étape 2 : Configuration des Paramètres du Vent
+- **Interface de Configuration :** Intégrer les contrôles de débogage du vent (force, vitesse, etc.) du mode jeu dans l'éditeur.
+- **Sauvegarde & Chargement :** Adapter le format de sauvegarde des cartes (`.json`) pour inclure ces nouveaux paramètres et assurer la compatibilité.
+
+### 8.3. Étape 3 : Sauvegarde des Paramètres depuis le Jeu
+- **Bouton "Sauvegarder" en Jeu :** En mode "Campagne", ajouter un bouton pour sauvegarder les ajustements des paramètres du vent.
+- **Mécanisme de Sauvegarde Sécurisé :** La sauvegarde générera un nouveau fichier de carte mis à jour à télécharger, que l'utilisateur devra manuellement utiliser pour remplacer l'ancien.
