@@ -289,7 +289,6 @@ function setupEventListeners() {
         venturiCheckbox.checked = state.windParams.venturiEnabled;
     }
 }
-}
 
 // --- Simulation Logic ---
 function startSimulation() {
