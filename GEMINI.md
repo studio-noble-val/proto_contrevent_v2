@@ -234,3 +234,13 @@ L'objectif est d'intégrer une simulation de vent interactive et configurable di
 ### 8.3. Étape 3 : Sauvegarde des Paramètres depuis le Jeu
 - **Bouton "Sauvegarder" en Jeu :** En mode "Campagne", ajouter un bouton pour sauvegarder les ajustements des paramètres du vent.
 - **Mécanisme de Sauvegarde Sécurisé :** La sauvegarde générera un nouveau fichier de carte mis à jour à télécharger, que l'utilisateur devra manuellement utiliser pour remplacer l'ancien.
+
+### 8.4. Étape 4 : Architecture "Multi-pistes" & Groupes
+- **4a. Paramètres par Source :** Modifier la structure de données pour que chaque source de vent ait ses propres réglages (`windParams`, `windTempoParams`). L'interface de l'éditeur modifiera les paramètres de la source sélectionnée.
+- **4b. Groupes & Synchronisation :** Étendre la structure de données pour permettre de grouper des sources. Ajouter des modes de synchronisation pour ces groupes (ex: "Simultané", "Séquence"). Créer l'interface de base pour créer et gérer ces groupes.
+
+### 8.5. Étape 5 : Moteur de Vent Séquencé
+- Refondre en profondeur le moteur de vent (`updateWind`) pour qu'il puisse gérer la nouvelle logique : déclencher les sources individuelles, mais aussi les groupes en respectant leur mode de synchronisation.
+
+### 8.6. Étape 6 : Refonte UI "Console à Vent"
+- Une fois que toute la logique fonctionnera, transformer l'apparence des contrôles de l'éditeur pour qu'ils adoptent l'esthétique d'une console de mixage (potards, faders, etc.).
