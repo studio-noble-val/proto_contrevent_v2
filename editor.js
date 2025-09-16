@@ -11,6 +11,11 @@ const PAN_SPEED = 15;
 const ZOOM_SPEED = 1.1;
 const INTENSITY_LEVELS = [0.025, 0.05, 0.075, 0.1, 0.125];
 
+// --- Wind Speed Slider Constants ---
+const MAX_SLIDER_VALUE = 100;
+const MAX_WIND_MULTIPLIER = 5.0;
+const WIND_SCALE_FACTOR = MAX_WIND_MULTIPLIER / (MAX_SLIDER_VALUE * MAX_SLIDER_VALUE);
+
 // --- Editor State ---
 const state = {
     grid: [],
@@ -41,6 +46,12 @@ const state = {
         reliefPenalty: 2.0,
         randomness: 0.2,
         venturiEnabled: true, // Match game state
+    },
+    windTempoParams: {
+        baseInterval: 5,
+        rhythmFrequency: 0.1,
+        rhythmAmplitude: 100,
+        noiseInfluence: 0.5,
     },
 };
 
@@ -87,6 +98,45 @@ function resizeCanvas() {
     canvas.height = canvasContainer.clientHeight;
     focusOnGrid(); // Re-center and zoom when window resizes
     drawGrid();
+}
+
+
+// --- UI Update Handlers ---
+function updateWindMultiplier(sliderValue) {
+    const value = parseFloat(sliderValue);
+    state.globalWindMultiplier = WIND_SCALE_FACTOR * value * value;
+    const windValueSpan = document.getElementById('windSpeedValue');
+    if (windValueSpan) {
+        windValueSpan.textContent = state.globalWindMultiplier.toFixed(2);
+    }
+}
+
+function updateControlsFromState() {
+    function updateSlider(sliderId, valueSpanId, value, decimals = 2) {
+        const slider = document.getElementById(sliderId);
+        const span = document.getElementById(valueSpanId);
+        if (slider) slider.value = value;
+        if (span) span.textContent = parseFloat(value).toFixed(decimals);
+    }
+
+    updateSlider("windSourceScaleSlider", "windSourceScaleValue", state.windParams.sourceScale, 0);
+    updateSlider("maxMasseSlider", "maxMasseValue", state.windParams.maxMasse, 1);
+    updateSlider("reliefPenaltySlider", "reliefPenaltyValue", state.windParams.reliefPenalty, 1);
+    updateSlider("randomnessSlider", "randomnessValue", state.windParams.randomness, 2);
+    updateSlider("baseIntervalSlider", "baseIntervalValue", state.windTempoParams.baseInterval, 0);
+    updateSlider("rhythmFrequencySlider", "rhythmFrequencyValue", state.windTempoParams.rhythmFrequency, 2);
+    updateSlider("rhythmAmplitudeSlider", "rhythmAmplitudeValue", state.windTempoParams.rhythmAmplitude, 0);
+    updateSlider("noiseInfluenceSlider", "noiseInfluenceValue", state.windTempoParams.noiseInfluence, 2);
+
+    const venturiCheckbox = document.getElementById('venturiEffectCheckbox');
+    if (venturiCheckbox) venturiCheckbox.checked = state.windParams.venturiEnabled;
+
+    const windSlider = document.getElementById('windSpeedSlider');
+    if (windSlider) {
+        const sliderValue = Math.sqrt(state.globalWindMultiplier / WIND_SCALE_FACTOR);
+        windSlider.value = sliderValue;
+        updateWindMultiplier(sliderValue);
+    }
 }
 
 function setupEventListeners() {
@@ -195,6 +245,50 @@ function setupEventListeners() {
     startSimButton.addEventListener('click', startSimulation);
     stopSimButton.addEventListener('click', stopSimulation);
     resetSimButton.addEventListener('click', resetSimulation);
+
+    // --- Wind Parameter Controls ---
+    function setupSlider(sliderId, valueSpanId, targetState, paramsKey, isFloat = true, decimals = 2) {
+        const slider = document.getElementById(sliderId);
+        const span = document.getElementById(valueSpanId);
+        if (!slider || !span) return;
+
+        const update = (value) => {
+            const numValue = isFloat ? parseFloat(value) : parseInt(value);
+            targetState[paramsKey] = numValue;
+            span.textContent = numValue.toFixed(decimals);
+        };
+
+        slider.addEventListener('input', e => update(e.target.value));
+        // Set initial value from state when setting up
+        slider.value = targetState[paramsKey];
+        update(slider.value);
+    }
+
+    // --- Wind & Tempo Sliders ---
+    setupSlider("windSourceScaleSlider", "windSourceScaleValue", state.windParams, "sourceScale", false, 0);
+    setupSlider("maxMasseSlider", "maxMasseValue", state.windParams, "maxMasse", true, 1);
+    setupSlider("reliefPenaltySlider", "reliefPenaltyValue", state.windParams, "reliefPenalty", true, 1);
+    setupSlider("randomnessSlider", "randomnessValue", state.windParams, "randomness", true, 2);
+    setupSlider("baseIntervalSlider", "baseIntervalValue", state.windTempoParams, "baseInterval", false, 0);
+    setupSlider("rhythmFrequencySlider", "rhythmFrequencyValue", state.windTempoParams, "rhythmFrequency", true, 2);
+    setupSlider("rhythmAmplitudeSlider", "rhythmAmplitudeValue", state.windTempoParams, "rhythmAmplitude", false, 0);
+    setupSlider("noiseInfluenceSlider", "noiseInfluenceValue", state.windTempoParams, "noiseInfluence", true, 2);
+
+    // --- Special Handlers for non-standard sliders/checkboxes ---
+    const windSlider = document.getElementById('windSpeedSlider');
+    windSlider.addEventListener('input', e => {
+        updateWindMultiplier(e.target.value);
+    });
+    updateWindMultiplier(windSlider.value);
+
+    const venturiCheckbox = document.getElementById('venturiEffectCheckbox');
+    if (venturiCheckbox) {
+        venturiCheckbox.addEventListener('change', e => {
+            state.windParams.venturiEnabled = e.target.checked;
+        });
+        venturiCheckbox.checked = state.windParams.venturiEnabled;
+    }
+}
 }
 
 // --- Simulation Logic ---
@@ -264,6 +358,9 @@ function saveMap() {
         spawnPoint: state.spawnPoint,
         flagPosition: state.flagPosition,
         windSources: state.windSources,
+        windParams: state.windParams,
+        windTempoParams: state.windTempoParams,
+        globalWindMultiplier: state.globalWindMultiplier,
     };
     const filename = slugify(state.mapName) + '.json';
     const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: 'application/json' });
@@ -289,20 +386,42 @@ function loadMapFromFile() {
             try {
                 const data = JSON.parse(event.target.result);
                 let reliefGrid;
+
+                // Reset state for new map, keeping defaults
+                const defaultState = {
+                    spawnPoint: null,
+                    flagPosition: null,
+                    windSources: [],
+                    mapName: 'Nouvelle Carte',
+                    mapOrder: 99,
+                    windParams: { sourceScale: 10, maxMasse: 1.2, minCelerite: 0.1, maxCelerite: 1.0, reliefPenalty: 2.0, randomness: 0.2, venturiEnabled: true },
+                    windTempoParams: { baseInterval: 5, rhythmFrequency: 0.1, rhythmAmplitude: 100, noiseInfluence: 0.5 },
+                    globalWindMultiplier: 1.0,
+                };
+
                 if (Array.isArray(data)) { // Old format
                     reliefGrid = data;
-                    state.spawnPoint = null;
-                    state.flagPosition = null;
-                    state.windSources = [];
-                    state.mapName = 'Carte importée';
-                    state.mapOrder = 99;
+                    Object.assign(state, defaultState);
+                    state.mapName = 'Carte importée (ancien format)';
                 } else { // New format
                     reliefGrid = data.relief;
-                    state.spawnPoint = data.spawnPoint || null;
-                    state.flagPosition = data.flagPosition || null;
-                    state.windSources = data.windSources || [];
-                    state.mapName = data.name || 'Carte sans nom';
-                    state.mapOrder = data.order || 99;
+                    // Load all properties, using defaults for any that are missing
+                    state.spawnPoint = data.spawnPoint || defaultState.spawnPoint;
+                    state.flagPosition = data.flagPosition || defaultState.flagPosition;
+                    state.windSources = data.windSources || defaultState.windSources;
+                    state.mapName = data.name || defaultState.mapName;
+                    state.mapOrder = data.order || defaultState.mapOrder;
+                    state.globalWindMultiplier = data.globalWindMultiplier || defaultState.globalWindMultiplier;
+                    
+                    // Safely merge wind params
+                    state.windParams = defaultState.windParams;
+                    if (data.windParams) {
+                        Object.assign(state.windParams, data.windParams);
+                    }
+                    state.windTempoParams = defaultState.windTempoParams;
+                    if (data.windTempoParams) {
+                        Object.assign(state.windTempoParams, data.windTempoParams);
+                    }
                 }
 
                 if (!Array.isArray(reliefGrid) || !Array.isArray(reliefGrid[0])) {
@@ -310,7 +429,6 @@ function loadMapFromFile() {
                 }
                 state.grid = reliefGrid.map(row => row.map(relief => ({ relief, wind: { masse: 0, celerite: 0, direction: 0 }, isSource: false })) );
                 
-                // Re-apply isSource flag from loaded wind sources
                 if (state.windSources && state.windSources.length > 0) {
                     state.windSources.forEach(source => {
                         if (state.grid[source.r] && state.grid[source.r][source.c]) {
@@ -324,7 +442,9 @@ function loadMapFromFile() {
                 mapNameInput.value = state.mapName;
                 mapOrderInput.value = state.mapOrder;
                 
-                focusOnGrid(); // Center and zoom on the loaded grid
+                updateControlsFromState();
+
+                focusOnGrid();
                 drawGrid();
                 alert("Carte chargée avec succès !");
             } catch (error) {

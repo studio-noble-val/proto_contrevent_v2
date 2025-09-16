@@ -33,11 +33,23 @@ async function loadMap(mapUrl) {
             state.spawnPoint = null;
             state.flagPosition = null;
             state.windSources = [];
+            // Wind params will use defaults
         } else {
             state.grid = data.relief;
             state.spawnPoint = data.spawnPoint || null;
             state.flagPosition = data.flagPosition || null;
             state.windSources = data.windSources || [];
+
+            // Load wind parameters if they exist, merging with defaults
+            if (data.windParams) {
+                Object.assign(state.windParams, data.windParams);
+            }
+            if (data.windTempoParams) {
+                Object.assign(state.windTempoParams, data.windTempoParams);
+            }
+            if (typeof data.globalWindMultiplier !== 'undefined') {
+                state.globalWindMultiplier = data.globalWindMultiplier;
+            }
         }
 
     } catch (e) {

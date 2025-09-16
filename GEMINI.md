@@ -227,9 +227,9 @@ L'objectif est d'intégrer une simulation de vent interactive et configurable di
 - **Intégration du Moteur de Vent :** Connecter le moteur de vent (`wind.js`) à l'éditeur et créer une boucle de simulation contrôlable. (Terminé)
 - **Visualisation :** Mettre à jour le rendu de la grille pour afficher la "masse" du vent sur les cellules, comme en jeu. (Terminé)
 
-### 8.2. Étape 2 : Configuration des Paramètres du Vent
-- **Interface de Configuration :** Intégrer les contrôles de débogage du vent (force, vitesse, etc.) du mode jeu dans l'éditeur.
-- **Sauvegarde & Chargement :** Adapter le format de sauvegarde des cartes (`.json`) pour inclure ces nouveaux paramètres et assurer la compatibilité.
+### 8.2. Étape 2 : Configuration des Paramètres du Vent (Terminée)
+- **Interface de Configuration :** Intégrer les contrôles de débogage du vent (force, vitesse, etc.) du mode jeu dans l'éditeur. (Terminé)
+- **Sauvegarde & Chargement :** Adapter le format de sauvegarde des cartes (`.json`) pour inclure ces nouveaux paramètres et assurer la compatibilité. (Terminé)
 
 ### 8.3. Étape 3 : Sauvegarde des Paramètres depuis le Jeu
 - **Bouton "Sauvegarder" en Jeu :** En mode "Campagne", ajouter un bouton pour sauvegarder les ajustements des paramètres du vent.
