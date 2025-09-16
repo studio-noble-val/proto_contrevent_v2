@@ -221,11 +221,11 @@ L'objectif était de lier l'éditeur au jeu via un système de campagne et d'am�
 
 L'objectif est d'intégrer une simulation de vent interactive et configurable directement dans l'éditeur de carte pour améliorer le processus de level design.
 
-### 8.1. Étape 1 : Simulation de Vent Basique
+### 8.1. Étape 1 : Simulation de Vent Basique (Terminée)
 - **Création de Branche Git :** Isoler le développement dans la branche `feature/editor-wind-simulation`. (Terminé)
-- **Interface Utilisateur :** Ajouter les boutons "Lancer Sim", "Stop Sim", et "Réinit Sim" à l'interface de l'éditeur.
-- **Intégration du Moteur de Vent :** Connecter le moteur de vent (`wind.js`) à l'éditeur et créer une boucle de simulation contrôlable.
-- **Visualisation :** Mettre à jour le rendu de la grille pour afficher la "masse" du vent sur les cellules, comme en jeu.
+- **Interface Utilisateur :** Ajouter les boutons "Lancer Sim", "Stop Sim", et "Réinit Sim" à l'interface de l'éditeur. (Terminé)
+- **Intégration du Moteur de Vent :** Connecter le moteur de vent (`wind.js`) à l'éditeur et créer une boucle de simulation contrôlable. (Terminé)
+- **Visualisation :** Mettre à jour le rendu de la grille pour afficher la "masse" du vent sur les cellules, comme en jeu. (Terminé)
 
 ### 8.2. Étape 2 : Configuration des Paramètres du Vent
 - **Interface de Configuration :** Intégrer les contrôles de débogage du vent (force, vitesse, etc.) du mode jeu dans l'éditeur.
