@@ -33,7 +33,7 @@ function getDownstreamNeighbors(r, c, gridRows, gridCols) {
 }
 
 
-export function updateWind({ grid, windSources, time, globalWindMultiplier }) {
+export function updateWind({ grid, windSources, windGroups, time, globalWindMultiplier }) {
     if (!grid.length || !grid[0].length) return;
     const gridCols = grid[0].length;
     const gridRows = grid.length;
@@ -45,26 +45,30 @@ export function updateWind({ grid, windSources, time, globalWindMultiplier }) {
         direction: 0,
     })));
 
-    // 2. Génération des bourrasques à toutes les sources actives
-    windSources.forEach(source => {
-        const { r, c, windParams, windTempoParams, gain } = source;
-        if (grid[r] && grid[r][c]) {
-            // Probabilité de générer une bourrasque pour créer un effet de paquet
-            if (Math.random() > 0.6) {
-                const noiseVal = PerlinNoise.noise(r / (windParams.sourceScale || 10), time);
-                const baseMasse = (noiseVal + 1) / 2 * (windParams.maxMasse || 1.2);
-                const masse = baseMasse * globalWindMultiplier * (gain !== undefined ? gain : 1.0);
-                
-                grid[r][c].wind = {
-                    masse: masse,
-                    celerite: (windParams.minCelerite || 0.1) + (1 - masse / (windParams.maxMasse || 1.2)) * ((windParams.maxCelerite || 1.0) - (windParams.minCelerite || 0.1)),
-                    direction: Math.PI, // Toujours vers la gauche pour l'instant
-                    // Store the params that will affect propagation
-                    params: windParams 
-                };
-            } else {
-                // Si pas de bourrasque, la masse est nulle
-                grid[r][c].wind.masse = 0;
+    // 2. Génération des bourrasques
+    const ungroupedSources = windSources.filter(s => !windGroups.some(g => g.sourceIds.includes(s.id)));
+
+    // Process individual sources
+    ungroupedSources.forEach(source => {
+        generateWindForSource(source, grid, time, globalWindMultiplier);
+    });
+
+    // Process groups
+    windGroups.forEach(group => {
+        if (group.syncMode === 'simultaneous') {
+            group.sourceIds.forEach(sourceId => {
+                const source = windSources.find(s => s.id === sourceId);
+                if (source) {
+                    generateWindForSource(source, grid, time, globalWindMultiplier);
+                }
+            });
+        } else if (group.syncMode === 'sequence') {
+            const sequenceDuration = 5; // 5 seconds for a full sequence
+            const sourceIndex = Math.floor((time / sequenceDuration) * group.sourceIds.length) % group.sourceIds.length;
+            const sourceId = group.sourceIds[sourceIndex];
+            const source = windSources.find(s => s.id === sourceId);
+            if (source) {
+                generateWindForSource(source, grid, time, globalWindMultiplier);
             }
         }
     });
@@ -147,6 +151,29 @@ export function updateWind({ grid, windSources, time, globalWindMultiplier }) {
     for (let r = 0; r < gridRows; r++) {
         for (let c = 0; c < gridCols; c++) {
             grid[r][c].wind = nextWindGrid[r][c];
+        }
+    }
+}
+
+function generateWindForSource(source, grid, time, globalWindMultiplier) {
+    const { r, c, windParams, windTempoParams, gain } = source;
+    if (grid[r] && grid[r][c]) {
+        // Probabilité de générer une bourrasque pour créer un effet de paquet
+        if (Math.random() > 0.6) {
+            const noiseVal = PerlinNoise.noise(r / (windParams.sourceScale || 10), time);
+            const baseMasse = (noiseVal + 1) / 2 * (windParams.maxMasse || 1.2);
+            const masse = baseMasse * globalWindMultiplier * (gain !== undefined ? gain : 1.0);
+            
+            grid[r][c].wind = {
+                masse: masse,
+                celerite: (windParams.minCelerite || 0.1) + (1 - masse / (windParams.maxMasse || 1.2)) * ((windParams.maxCelerite || 1.0) - (windParams.minCelerite || 0.1)),
+                direction: Math.PI, // Toujours vers la gauche pour l'instant
+                // Store the params that will affect propagation
+                params: windParams 
+            };
+        } else {
+            // Si pas de bourrasque, la masse est nulle
+            grid[r][c].wind.masse = 0;
         }
     }
 }

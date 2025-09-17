@@ -244,7 +244,13 @@ L'objectif est d'intégrer une simulation de vent interactive et configurable di
     - Ajout de contrôles "Master Gain" (global) et "Piste Gain" (spécifique à la source).
     - Il est désormais possible de déplacer et de supprimer les sources de vent.
 
-- **4b. Groupes & Synchronisation :** Étendre la structure de données pour permettre de grouper des sources. Ajouter des modes de synchronisation pour ces groupes (ex: "Simultané", "Séquence"). Créer l'interface de base pour créer et gérer ces groupes.
+- **4b. Groupes & Synchronisation (En cours) :** 
+    - La structure de données a été étendue pour inclure des groupes de sources de vent (`windGroups`).
+    - Chaque groupe possède un nom, un mode de synchronisation (`simultané` ou `séquence`) et une liste de sources associées.
+    - L'interface de l'éditeur permet désormais de créer, nommer, supprimer des groupes et de changer leur mode de synchronisation.
+    - Le moteur de vent (`updateWind`) a été adapté pour prendre en compte les groupes et leur mode de synchronisation.
+    - La sélection multiple des sources est maintenant possible via un rectangle de sélection (cliquer-glisser) pour faciliter l'ajout aux groupes.
+    - La suppression des sources se fait via un bouton dédié pour plus de clarté.
 
 ### 8.5. Étape 5 : Moteur de Vent Séquencé
 - Refondre en profondeur le moteur de vent (`updateWind`) pour qu'il puisse gérer la nouvelle logique : déclencher les sources individuelles, mais aussi les groupes en respectant leur mode de synchronisation.

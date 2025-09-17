@@ -25,6 +25,9 @@ const state = {
     intensity: 0.05,
     isPainting: false,
     isPanning: false,
+    isSelecting: false,
+    selectionStart: { x: 0, y: 0 },
+    selectionEnd: { x: 0, y: 0 },
     lastPanPosition: { x: 0, y: 0 },
     brushMode: 'paint',
     zoomLevel: 1,
@@ -32,7 +35,8 @@ const state = {
     spawnPoint: null,
     flagPosition: null,
     windSources: [],
-    selectedWindSource: null,
+    windGroups: [],
+    selectedWindSources: [],
     mapName: 'Nouvelle Carte',
     mapOrder: 1,
     isSimulating: false,
@@ -58,7 +62,7 @@ const state = {
 };
 
 // --- DOM Elements ---
-let canvas, ctx, brushSizeInput, altitudeInput, intensityInput, toolButtons, paintToolOptionsPanel, sculptToolOptionsPanel, mapRowsInput, mapColsInput, editorSidebar, panelHeader, mapNameInput, mapOrderInput, canvasContainer, saveButton, loadFileButton, resizeButton, backToMenuButton, startSimButton, stopSimButton, resetSimButton;
+let canvas, ctx, brushSizeInput, altitudeInput, intensityInput, toolButtons, paintToolOptionsPanel, sculptToolOptionsPanel, mapRowsInput, mapColsInput, editorSidebar, panelHeader, mapNameInput, mapOrderInput, canvasContainer, saveButton, loadFileButton, resizeButton, backToMenuButton, startSimButton, stopSimButton, resetSimButton, createGroupButton, groupSelect, deleteGroupButton, addToGroupButton, removeFromGroupButton, groupSyncModeSelect, deleteSourceButton;
 
 // --- Initialization ---
 function init() {
@@ -85,6 +89,13 @@ function init() {
     startSimButton = document.getElementById('start-sim-button');
     stopSimButton = document.getElementById('stop-sim-button');
     resetSimButton = document.getElementById('reset-sim-button');
+    createGroupButton = document.getElementById('create-group-button');
+    groupSelect = document.getElementById('group-select');
+    deleteGroupButton = document.getElementById('delete-group-button');
+    addToGroupButton = document.getElementById('add-to-group-button');
+    removeFromGroupButton = document.getElementById('remove-from-group-button');
+    groupSyncModeSelect = document.getElementById('group-sync-mode');
+    deleteSourceButton = document.getElementById('delete-source-button');
 
     state.intensity = INTENSITY_LEVELS[intensityInput.value];
     state.mapName = mapNameInput.value;
@@ -93,6 +104,7 @@ function init() {
     resizeCanvas();
     createNewGrid(parseInt(mapRowsInput.value, 10), parseInt(mapColsInput.value, 10));
     setupEventListeners();
+    updateGroupUI();
 }
 
 function resizeCanvas() {
@@ -102,6 +114,21 @@ function resizeCanvas() {
     drawGrid();
 }
 
+function getMousePos(evt) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top
+    };
+}
+
+function getTransformedMousePos(evt) {
+    const mousePos = getMousePos(evt);
+    return {
+        x: (mousePos.x - state.cameraOffset.x) / state.zoomLevel,
+        y: (mousePos.y - state.cameraOffset.y) / state.zoomLevel
+    };
+}
 
 // --- UI Update Handlers ---
 function updateWindMultiplier(sliderValue) {
@@ -121,10 +148,10 @@ function updateControlsFromState() {
         if (span) span.textContent = parseFloat(value).toFixed(decimals);
     }
 
-    const source = state.selectedWindSource;
-    const params = source ? source.windParams : state.windParams;
-    const tempoParams = source ? source.windTempoParams : state.windTempoParams;
-    const gain = source ? source.gain : 1.0;
+    const firstSource = state.selectedWindSources[0];
+    const params = firstSource ? firstSource.windParams : state.windParams;
+    const tempoParams = firstSource ? firstSource.windTempoParams : state.windTempoParams;
+    const gain = firstSource ? firstSource.gain : 1.0;
 
     updateSlider("trackGainSlider", "trackGainValue", gain, 2);
     updateSlider("windSourceScaleSlider", "windSourceScaleValue", params.sourceScale, 0);
@@ -175,15 +202,21 @@ function setupEventListeners() {
     });
     saveButton.addEventListener('click', saveMap);
     loadFileButton.addEventListener('click', loadMapFromFile);
+    deleteSourceButton.addEventListener('click', deleteSelectedSources);
 
     // Mouse listeners for canvas
     canvas.addEventListener('mousedown', e => {
         if (e.target !== canvas) return;
+        const mousePos = getMousePos(e);
         if (e.button === 1) { // Middle mouse
             state.isPanning = true;
             state.lastPanPosition = { x: e.clientX, y: e.clientY };
         } else if (e.button === 0) { // Left mouse
-            if (['paint', 'raise', 'lower'].includes(state.brushMode)) {
+            if (state.brushMode === 'select') {
+                state.isSelecting = true;
+                state.selectionStart = mousePos;
+                state.selectionEnd = mousePos;
+            } else if (['paint', 'raise', 'lower'].includes(state.brushMode)) {
                 state.isPainting = true;
             }
             handleCanvasClick(e);
@@ -191,11 +224,17 @@ function setupEventListeners() {
     });
 
     window.addEventListener('mouseup', e => {
+        if (state.isSelecting) {
+            state.isSelecting = false;
+            selectSourcesInRect(e.shiftKey);
+            drawGrid();
+        }
         state.isPainting = false;
         state.isPanning = false;
     });
 
     window.addEventListener('mousemove', e => {
+        const mousePos = getMousePos(e);
         if (state.isPanning) {
             const dx = e.clientX - state.lastPanPosition.x;
             const dy = e.clientY - state.lastPanPosition.y;
@@ -205,12 +244,16 @@ function setupEventListeners() {
             drawGrid();
         } else if (state.isPainting) {
             handleCanvasClick(e);
+        } else if (state.isSelecting) {
+            state.selectionEnd = mousePos;
+            drawGrid();
         }
     });
 
     canvas.addEventListener('mouseleave', () => {
         state.isPainting = false;
         state.isPanning = false;
+        state.isSelecting = false;
     });
 
     // Zoom listener
@@ -249,6 +292,19 @@ function setupEventListeners() {
 
     window.addEventListener('resize', resizeCanvas);
 
+    // --- Group Management ---
+    createGroupButton.addEventListener('click', createGroup);
+    deleteGroupButton.addEventListener('click', deleteGroup);
+    addToGroupButton.addEventListener('click', addSourceToGroup);
+    removeFromGroupButton.addEventListener('click', removeSourceFromGroup);
+    groupSyncModeSelect.addEventListener('change', updateGroupSyncMode);
+    groupSelect.addEventListener('change', () => {
+        const group = getSelectedGroup();
+        if (group) {
+            groupSyncModeSelect.value = group.syncMode;
+        }
+    });
+
     // --- Simulation Controls ---
     startSimButton.addEventListener('click', startSimulation);
     stopSimButton.addEventListener('click', stopSimulation);
@@ -262,14 +318,16 @@ function setupEventListeners() {
 
         const update = (value) => {
             const numValue = isFloat ? parseFloat(value) : parseInt(value);
-            if (state.selectedWindSource) {
+            state.selectedWindSources.forEach(source => {
                 if (isGain) {
-                    state.selectedWindSource.gain = numValue;
+                    source.gain = numValue;
                 } else {
-                    const targetParams = isTempoParam ? state.selectedWindSource.windTempoParams : state.selectedWindSource.windParams;
+                    const targetParams = isTempoParam ? source.windTempoParams : source.windParams;
                     targetParams[paramsKey] = numValue;
                 }
-            } else if (!isGain) {
+            });
+
+            if (state.selectedWindSources.length === 0 && !isGain) {
                 // Only update global defaults if no source is selected and it's not a gain slider
                 const targetParams = isTempoParam ? state.windTempoParams : state.windParams;
                 targetParams[paramsKey] = numValue;
@@ -300,13 +358,110 @@ function setupEventListeners() {
     const venturiCheckbox = document.getElementById('venturiEffectCheckbox');
     if (venturiCheckbox) {
         venturiCheckbox.addEventListener('change', e => {
-            const targetParams = state.selectedWindSource ? state.selectedWindSource.windParams : state.windParams;
-            targetParams.venturiEnabled = e.target.checked;
+            state.selectedWindSources.forEach(source => {
+                source.windParams.venturiEnabled = e.target.checked;
+            });
+            if (state.selectedWindSources.length === 0) {
+                state.windParams.venturiEnabled = e.target.checked;
+            }
         });
     }
 
     // Set initial values from state
     updateControlsFromState();
+    updateGroupUI();
+}
+
+// --- Group Management ---
+function updateGroupUI() {
+    groupSelect.innerHTML = '';
+    state.windGroups.forEach(group => {
+        const option = document.createElement('option');
+        option.value = group.id;
+        option.textContent = group.name;
+        groupSelect.appendChild(option);
+    });
+
+    const selectedGroup = getSelectedGroup();
+    if (selectedGroup) {
+        groupSyncModeSelect.value = selectedGroup.syncMode;
+    }
+}
+
+function getSelectedGroup() {
+    const selectedGroupId = parseInt(groupSelect.value, 10);
+    return state.windGroups.find(g => g.id === selectedGroupId);
+}
+
+function createGroup() {
+    const groupName = prompt("Entrez le nom du groupe:", `Groupe ${state.windGroups.length + 1}`);
+    if (groupName) {
+        const newGroup = {
+            id: Date.now(),
+            name: groupName,
+            syncMode: 'simultaneous',
+            sourceIds: []
+        };
+        state.windGroups.push(newGroup);
+        updateGroupUI();
+        groupSelect.value = newGroup.id;
+    }
+}
+
+function deleteGroup() {
+    const selectedGroup = getSelectedGroup();
+    if (selectedGroup && confirm(`Voulez-vous vraiment supprimer le groupe "${selectedGroup.name}" ?`)) {
+        state.windGroups = state.windGroups.filter(g => g.id !== selectedGroup.id);
+        updateGroupUI();
+    }
+}
+
+function addSourceToGroup() {
+    const selectedGroup = getSelectedGroup();
+    if (selectedGroup && state.selectedWindSources.length > 0) {
+        state.selectedWindSources.forEach(source => {
+            // Ensure source is not already in another group
+            removeSourceFromAllGroups(source.id);
+            selectedGroup.sourceIds.push(source.id);
+        });
+        drawGrid(); // Redraw to show new group color
+    }
+}
+
+function removeSourceFromGroup() {
+    if (state.selectedWindSources.length > 0) {
+        state.selectedWindSources.forEach(source => {
+            removeSourceFromAllGroups(source.id);
+        });
+        drawGrid(); // Redraw to show new group color
+    }
+}
+
+function removeSourceFromAllGroups(sourceId) {
+    state.windGroups.forEach(group => {
+        group.sourceIds = group.sourceIds.filter(id => id !== sourceId);
+    });
+}
+
+function updateGroupSyncMode() {
+    const selectedGroup = getSelectedGroup();
+    if (selectedGroup) {
+        selectedGroup.syncMode = groupSyncModeSelect.value;
+    }
+}
+
+function deleteSelectedSources() {
+    if (state.selectedWindSources.length > 0 && confirm("Voulez-vous vraiment supprimer les sources sélectionnées ?")) {
+        state.selectedWindSources.forEach(source => {
+            const index = state.windSources.findIndex(s => s.id === source.id);
+            if (index !== -1) {
+                state.windSources.splice(index, 1);
+            }
+            removeSourceFromAllGroups(source.id);
+        });
+        state.selectedWindSources = [];
+        drawGrid();
+    }
 }
 
 // --- Simulation Logic ---
@@ -346,6 +501,7 @@ function simulationLoop() {
     updateWind({
         grid: state.grid,
         windSources: state.windSources,
+        windGroups: state.windGroups,
         time: state.time,
         globalWindMultiplier: state.globalWindMultiplier
     });
@@ -367,8 +523,8 @@ function saveMap() {
         relief: state.grid.map(row => row.map(cell => parseFloat(cell.relief.toFixed(3)))),
         spawnPoint: state.spawnPoint,
         flagPosition: state.flagPosition,
-        windSources: state.windSources, // Now includes params per source
-        // Global/default params are no longer saved at the root, but are loaded from the first source if available.
+        windSources: state.windSources,
+        windGroups: state.windGroups,
         globalWindMultiplier: state.globalWindMultiplier,
     };
     const filename = slugify(state.mapName) + '.json';
@@ -401,7 +557,7 @@ function loadMapFromFile() {
                     spawnPoint: null,
                     flagPosition: null,
                     windSources: [],
-                    selectedWindSource: null,
+                    selectedWindSources: [],
                     mapName: 'Nouvelle Carte',
                     mapOrder: 99,
                     windParams: { sourceScale: 10, maxMasse: 1.2, minCelerite: 0.1, maxCelerite: 1.0, reliefPenalty: 2.0, randomness: 0.2, venturiEnabled: true },
@@ -421,13 +577,14 @@ function loadMapFromFile() {
                     state.mapName = data.name || defaultState.mapName;
                     state.mapOrder = data.order || defaultState.mapOrder;
                     state.globalWindMultiplier = data.globalWindMultiplier !== undefined ? data.globalWindMultiplier : defaultState.globalWindMultiplier;
-                    state.selectedWindSource = null; // Always reset selection
+                    state.selectedWindSources = []; // Always reset selection
 
                     // --- Wind Sources and Parameters Loading ---
                     state.windSources = data.windSources || [];
+                    state.windGroups = data.windGroups || [];
 
-                    // Backward compatibility for maps with global windParams or missing gain
-                    state.windSources.forEach(source => {
+                    // Backward compatibility for maps with global windParams or missing gain/id
+                    state.windSources.forEach((source, index) => {
                         if (data.windParams && !source.windParams) {
                             source.windParams = JSON.parse(JSON.stringify(data.windParams));
                         }
@@ -436,6 +593,9 @@ function loadMapFromFile() {
                         }
                         if (source.gain === undefined) {
                             source.gain = 1.0;
+                        }
+                        if (source.id === undefined) {
+                            source.id = Date.now() + index; // Simple unique ID
                         }
                     });
                     
@@ -471,6 +631,7 @@ function loadMapFromFile() {
                 mapOrderInput.value = state.mapOrder;
                 
                 updateControlsFromState();
+                updateGroupUI();
 
                 focusOnGrid();
                 drawGrid();
@@ -486,10 +647,8 @@ function loadMapFromFile() {
 
 // --- Main Click/Drag Handler ---
 function handleCanvasClick(e) {
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = (e.clientX - rect.left - state.cameraOffset.x) / state.zoomLevel;
-    const mouseY = (e.clientY - rect.top - state.cameraOffset.y) / state.zoomLevel;
-    const clickedHex = pixelToOffset(mouseX, mouseY);
+    const transformedPos = getTransformedMousePos(e);
+    const clickedHex = pixelToOffset(transformedPos.x, transformedPos.y);
 
     if (!state.grid[clickedHex.r] || !state.grid[clickedHex.r][clickedHex.c]) return;
 
@@ -509,26 +668,10 @@ function handleCanvasClick(e) {
             const cell = state.grid[clickedHex.r][clickedHex.c];
             const existingSourceIndex = state.windSources.findIndex(s => s.r === clickedHex.r && s.c === clickedHex.c);
             
-            if (existingSourceIndex !== -1) {
-                const clickedSource = state.windSources[existingSourceIndex];
-                if (e.shiftKey) {
-                    // Remove source with Shift+Click
-                    state.windSources.splice(existingSourceIndex, 1);
-                    cell.isSource = false;
-                    if (state.selectedWindSource && state.selectedWindSource.r === clickedHex.r && state.selectedWindSource.c === clickedHex.c) {
-                        state.selectedWindSource = null;
-                    }
-                } else {
-                    // Select/deselect source
-                    if (state.selectedWindSource && state.selectedWindSource.r === clickedSource.r && state.selectedWindSource.c === clickedSource.c) {
-                        state.selectedWindSource = null;
-                    } else {
-                        state.selectedWindSource = clickedSource;
-                    }
-                }
-            } else {
-                // Add a new source
+            if (existingSourceIndex === -1) {
+                // Add a new source and select it
                 const newSource = {
+                    id: Date.now(), // Simple unique ID
                     r: clickedHex.r,
                     c: clickedHex.c,
                     gain: 1.0,
@@ -537,28 +680,60 @@ function handleCanvasClick(e) {
                 };
                 state.windSources.push(newSource);
                 cell.isSource = true;
-                state.selectedWindSource = newSource;
+                state.selectedWindSources = [newSource]; // Select the new source
             }
             updateControlsFromState();
             break;
         case 'moveWindSource':
-            if (state.selectedWindSource) {
-                const oldPos = { r: state.selectedWindSource.r, c: state.selectedWindSource.c };
+            if (state.selectedWindSources.length === 1) {
+                const sourceToMove = state.selectedWindSources[0];
+                const oldPos = { r: sourceToMove.r, c: sourceToMove.c };
                 state.grid[oldPos.r][oldPos.c].isSource = false;
                 
-                state.selectedWindSource.r = clickedHex.r;
-                state.selectedWindSource.c = clickedHex.c;
+                sourceToMove.r = clickedHex.r;
+                sourceToMove.c = clickedHex.c;
                 state.grid[clickedHex.r][clickedHex.c].isSource = true;
-                state.selectedWindSource = null; // Deselect after moving
-            } else {
+                state.selectedWindSources = []; // Deselect after moving
+            } else if (state.selectedWindSources.length === 0) {
                 const sourceToMoveIndex = state.windSources.findIndex(s => s.r === clickedHex.r && s.c === clickedHex.c);
                 if (sourceToMoveIndex !== -1) {
-                    state.selectedWindSource = state.windSources[sourceToMoveIndex];
+                    state.selectedWindSources = [state.windSources[sourceToMoveIndex]];
                 }
             }
             break;
     }
     drawGrid();
+}
+
+function selectSourcesInRect(isShift) {
+    const rect = {
+        x1: Math.min(state.selectionStart.x, state.selectionEnd.x),
+        y1: Math.min(state.selectionStart.y, state.selectionEnd.y),
+        x2: Math.max(state.selectionStart.x, state.selectionEnd.x),
+        y2: Math.max(state.selectionStart.y, state.selectionEnd.y),
+    };
+
+    const sourcesInRect = state.windSources.filter(source => {
+        const offset = (source.r % 2) * (GRID_HORIZ_SPACING / 2);
+        const x = source.c * GRID_HORIZ_SPACING + offset + HEX_WIDTH / 2;
+        const y = source.r * GRID_VERT_SPACING + HEX_HEIGHT / 2;
+        
+        const screenX = x * state.zoomLevel + state.cameraOffset.x;
+        const screenY = y * state.zoomLevel + state.cameraOffset.y;
+
+        return screenX >= rect.x1 && screenX <= rect.x2 && screenY >= rect.y1 && screenY <= rect.y2;
+    });
+
+    if (isShift) {
+        sourcesInRect.forEach(source => {
+            if (!state.selectedWindSources.some(s => s.id === source.id)) {
+                state.selectedWindSources.push(source);
+            }
+        });
+    } else {
+        state.selectedWindSources = sourcesInRect;
+    }
+    updateControlsFromState();
 }
 
 
@@ -667,6 +842,21 @@ function drawGrid() {
     });
 
     ctx.restore();
+
+    // Draw selection rectangle on top of everything
+    if (state.isSelecting) {
+        ctx.fillStyle = 'rgba(0, 100, 255, 0.2)';
+        ctx.strokeStyle = 'rgba(0, 100, 255, 0.8)';
+        ctx.lineWidth = 1;
+        const rect = {
+            x: state.selectionStart.x,
+            y: state.selectionStart.y,
+            w: state.selectionEnd.x - state.selectionStart.x,
+            h: state.selectionEnd.y - state.selectionStart.y,
+        };
+        ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+        ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    }
 }
 
 function getColorForRelief(relief) {
@@ -723,15 +913,19 @@ function drawFlagMarker(x, y) {
 }
 
 function drawWindSourceMarker(x, y, source) {
-    const isSelected = state.selectedWindSource && state.selectedWindSource.r === source.r && state.selectedWindSource.c === source.c;
+    const isSelected = state.selectedWindSources.some(s => s.id === source.id);
     const isMoveMode = state.brushMode === 'moveWindSource';
+
+    // Find which group the source belongs to
+    const group = state.windGroups.find(g => g.sourceIds.includes(source.id));
+    const groupColor = group ? getGroupColor(group.id) : null;
 
     // Pulsating animation for selected source
     const pulse = isSelected ? Math.sin(state.time * 5) * 0.1 + 0.9 : 1;
     let radius = (isSelected ? BASE_HEX_SIZE / 2 : BASE_HEX_SIZE / 3) * pulse;
     let fillColor = isSelected ? 'rgba(255, 100, 0, 1)' : 'rgba(255, 255, 0, 0.7)'; // Bright orange if selected, else yellow
-    let strokeColor = isSelected ? '#000000' : '#FFFFFF';
-    let lineWidth = (isSelected ? 3 : 1.5) / state.zoomLevel;
+    let strokeColor = groupColor || (isSelected ? '#000000' : '#FFFFFF');
+    let lineWidth = (isSelected || groupColor) ? 3 : 1.5 / state.zoomLevel;
 
     if (isSelected && isMoveMode) {
         fillColor = 'rgba(0, 255, 0, 1)'; // Green when ready to move
@@ -741,7 +935,7 @@ function drawWindSourceMarker(x, y, source) {
     ctx.arc(x, y, radius, 0, 2 * Math.PI);
     ctx.fillStyle = fillColor;
     ctx.fill();
-    ctx.strokeStyle = '#FFFFFF';
+    ctx.strokeStyle = strokeColor;
     ctx.lineWidth = lineWidth;
     ctx.stroke();
 
@@ -754,9 +948,16 @@ function drawWindSourceMarker(x, y, source) {
     ctx.lineTo(x - arrowLength / 2 + arrowHeadSize, y - arrowHeadSize);
     ctx.moveTo(x - arrowLength / 2, y);
     ctx.lineTo(x - arrowLength / 2 + arrowHeadSize, y + arrowHeadSize);
-    ctx.strokeStyle = strokeColor;
+    ctx.strokeStyle = isSelected ? '#000000' : '#FFFFFF';
     ctx.lineWidth = (isSelected ? 2 : 1.5) / state.zoomLevel;
     ctx.stroke();
+}
+
+function getGroupColor(groupId) {
+    const i = state.windGroups.findIndex(g => g.id === groupId);
+    if (i === -1) return null;
+    const hue = (i * 137.5) % 360; // Golden angle for distinct colors
+    return `hsl(${hue}, 70%, 50%)`;
 }
 
 // --- Initialization ---

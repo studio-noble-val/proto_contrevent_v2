@@ -164,8 +164,9 @@
 
                 <!-- Tools -->
                 <div class="panel-section">
-                    <h3>Outils de Terrain</h3>
+                    <h3>Outils</h3>
                     <div class="button-group">
+                        <button class="tool-button" data-tool="select">Sélectionner</button>
                         <button class="tool-button active" data-tool="paint">Peindre</button>
                         <button class="tool-button" data-tool="raise">Augmenter</button>
                         <button class="tool-button" data-tool="lower">Réduire</button>
@@ -194,8 +195,30 @@
                     <div class="button-group">
                         <button class="tool-button" data-tool="setSpawn">Placer Spawn</button>
                         <button class="tool-button" data-tool="setFlag">Placer Drapeau</button>
-                        <button class="tool-button" data-tool="setWindSource">Placer/Gérer Source</button>
+                        <button class="tool-button" data-tool="setWindSource">Gérer Sources</button>
                         <button class="tool-button" data-tool="moveWindSource">Déplacer Source</button>
+                        <button id="delete-source-button" class="action-button">Supprimer Source</button>
+                    </div>
+                </div>
+
+                <!-- Wind Groups -->
+                <div class="panel-section">
+                    <h3>Groupes de Vent</h3>
+                    <div class="control-group">
+                        <button id="create-group-button" class="action-button">Créer Groupe</button>
+                        <select id="group-select"></select>
+                        <button id="delete-group-button" class="action-button">Suppr.</button>
+                    </div>
+                    <div class="control-group">
+                        <button id="add-to-group-button" class="action-button">Ajouter au Groupe</button>
+                        <button id="remove-from-group-button" class="action-button">Retirer du Groupe</button>
+                    </div>
+                     <div class="control-group">
+                        <label for="group-sync-mode">Mode Sync:</label>
+                        <select id="group-sync-mode">
+                            <option value="simultaneous">Simultané</option>
+                            <option value="sequence">Séquence</option>
+                        </select>
                     </div>
                 </div>
 
