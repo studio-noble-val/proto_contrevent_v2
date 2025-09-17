@@ -32,6 +32,7 @@ const state = {
     spawnPoint: null,
     flagPosition: null,
     windSources: [],
+    selectedWindSource: null,
     mapName: 'Nouvelle Carte',
     mapOrder: 1,
     isSimulating: false,
@@ -106,7 +107,7 @@ function resizeCanvas() {
 function updateWindMultiplier(sliderValue) {
     const value = parseFloat(sliderValue);
     state.globalWindMultiplier = WIND_SCALE_FACTOR * value * value;
-    const windValueSpan = document.getElementById('windSpeedValue');
+    const windValueSpan = document.getElementById('masterGainValue');
     if (windValueSpan) {
         windValueSpan.textContent = state.globalWindMultiplier.toFixed(2);
     }
@@ -120,22 +121,28 @@ function updateControlsFromState() {
         if (span) span.textContent = parseFloat(value).toFixed(decimals);
     }
 
-    updateSlider("windSourceScaleSlider", "windSourceScaleValue", state.windParams.sourceScale, 0);
-    updateSlider("maxMasseSlider", "maxMasseValue", state.windParams.maxMasse, 1);
-    updateSlider("reliefPenaltySlider", "reliefPenaltyValue", state.windParams.reliefPenalty, 1);
-    updateSlider("randomnessSlider", "randomnessValue", state.windParams.randomness, 2);
-    updateSlider("baseIntervalSlider", "baseIntervalValue", state.windTempoParams.baseInterval, 0);
-    updateSlider("rhythmFrequencySlider", "rhythmFrequencyValue", state.windTempoParams.rhythmFrequency, 2);
-    updateSlider("rhythmAmplitudeSlider", "rhythmAmplitudeValue", state.windTempoParams.rhythmAmplitude, 0);
-    updateSlider("noiseInfluenceSlider", "noiseInfluenceValue", state.windTempoParams.noiseInfluence, 2);
+    const source = state.selectedWindSource;
+    const params = source ? source.windParams : state.windParams;
+    const tempoParams = source ? source.windTempoParams : state.windTempoParams;
+    const gain = source ? source.gain : 1.0;
+
+    updateSlider("trackGainSlider", "trackGainValue", gain, 2);
+    updateSlider("windSourceScaleSlider", "windSourceScaleValue", params.sourceScale, 0);
+    updateSlider("maxMasseSlider", "maxMasseValue", params.maxMasse, 1);
+    updateSlider("reliefPenaltySlider", "reliefPenaltyValue", params.reliefPenalty, 1);
+    updateSlider("randomnessSlider", "randomnessValue", params.randomness, 2);
+    updateSlider("baseIntervalSlider", "baseIntervalValue", tempoParams.baseInterval, 0);
+    updateSlider("rhythmFrequencySlider", "rhythmFrequencyValue", tempoParams.rhythmFrequency, 2);
+    updateSlider("rhythmAmplitudeSlider", "rhythmAmplitudeValue", tempoParams.rhythmAmplitude, 0);
+    updateSlider("noiseInfluenceSlider", "noiseInfluenceValue", tempoParams.noiseInfluence, 2);
 
     const venturiCheckbox = document.getElementById('venturiEffectCheckbox');
-    if (venturiCheckbox) venturiCheckbox.checked = state.windParams.venturiEnabled;
+    if (venturiCheckbox) venturiCheckbox.checked = params.venturiEnabled;
 
-    const windSlider = document.getElementById('windSpeedSlider');
-    if (windSlider) {
+    const masterGainSlider = document.getElementById('masterGainSlider');
+    if (masterGainSlider) {
         const sliderValue = Math.sqrt(state.globalWindMultiplier / WIND_SCALE_FACTOR);
-        windSlider.value = sliderValue;
+        masterGainSlider.value = sliderValue;
         updateWindMultiplier(sliderValue);
     }
 }
@@ -248,47 +255,58 @@ function setupEventListeners() {
     resetSimButton.addEventListener('click', resetSimulation);
 
     // --- Wind Parameter Controls ---
-    function setupSlider(sliderId, valueSpanId, targetState, paramsKey, isFloat = true, decimals = 2) {
+    function setupSlider(sliderId, valueSpanId, paramsKey, isTempoParam = false, isFloat = true, decimals = 2, isGain = false) {
         const slider = document.getElementById(sliderId);
         const span = document.getElementById(valueSpanId);
         if (!slider || !span) return;
 
         const update = (value) => {
             const numValue = isFloat ? parseFloat(value) : parseInt(value);
-            targetState[paramsKey] = numValue;
+            if (state.selectedWindSource) {
+                if (isGain) {
+                    state.selectedWindSource.gain = numValue;
+                } else {
+                    const targetParams = isTempoParam ? state.selectedWindSource.windTempoParams : state.selectedWindSource.windParams;
+                    targetParams[paramsKey] = numValue;
+                }
+            } else if (!isGain) {
+                // Only update global defaults if no source is selected and it's not a gain slider
+                const targetParams = isTempoParam ? state.windTempoParams : state.windParams;
+                targetParams[paramsKey] = numValue;
+            }
             span.textContent = numValue.toFixed(decimals);
         };
 
         slider.addEventListener('input', e => update(e.target.value));
-        // Set initial value from state when setting up
-        slider.value = targetState[paramsKey];
-        update(slider.value);
     }
 
     // --- Wind & Tempo Sliders ---
-    setupSlider("windSourceScaleSlider", "windSourceScaleValue", state.windParams, "sourceScale", false, 0);
-    setupSlider("maxMasseSlider", "maxMasseValue", state.windParams, "maxMasse", true, 1);
-    setupSlider("reliefPenaltySlider", "reliefPenaltyValue", state.windParams, "reliefPenalty", true, 1);
-    setupSlider("randomnessSlider", "randomnessValue", state.windParams, "randomness", true, 2);
-    setupSlider("baseIntervalSlider", "baseIntervalValue", state.windTempoParams, "baseInterval", false, 0);
-    setupSlider("rhythmFrequencySlider", "rhythmFrequencyValue", state.windTempoParams, "rhythmFrequency", true, 2);
-    setupSlider("rhythmAmplitudeSlider", "rhythmAmplitudeValue", state.windTempoParams, "rhythmAmplitude", false, 0);
-    setupSlider("noiseInfluenceSlider", "noiseInfluenceValue", state.windTempoParams, "noiseInfluence", true, 2);
+    setupSlider("trackGainSlider", "trackGainValue", "gain", false, true, 2, true);
+    setupSlider("windSourceScaleSlider", "windSourceScaleValue", "sourceScale", false, false, 0);
+    setupSlider("maxMasseSlider", "maxMasseValue", "maxMasse", false, true, 1);
+    setupSlider("reliefPenaltySlider", "reliefPenaltyValue", "reliefPenalty", false, true, 1);
+    setupSlider("randomnessSlider", "randomnessValue", "randomness", false, true, 2);
+    setupSlider("baseIntervalSlider", "baseIntervalValue", "baseInterval", true, false, 0);
+    setupSlider("rhythmFrequencySlider", "rhythmFrequencyValue", "rhythmFrequency", true, true, 2);
+    setupSlider("rhythmAmplitudeSlider", "rhythmAmplitudeValue", "rhythmAmplitude", true, false, 0);
+    setupSlider("noiseInfluenceSlider", "noiseInfluenceValue", "noiseInfluence", true, true, 2);
 
     // --- Special Handlers for non-standard sliders/checkboxes ---
-    const windSlider = document.getElementById('windSpeedSlider');
-    windSlider.addEventListener('input', e => {
+    const masterGainSlider = document.getElementById('masterGainSlider');
+    masterGainSlider.addEventListener('input', e => {
         updateWindMultiplier(e.target.value);
     });
-    updateWindMultiplier(windSlider.value);
 
     const venturiCheckbox = document.getElementById('venturiEffectCheckbox');
     if (venturiCheckbox) {
         venturiCheckbox.addEventListener('change', e => {
-            state.windParams.venturiEnabled = e.target.checked;
+            const targetParams = state.selectedWindSource ? state.selectedWindSource.windParams : state.windParams;
+            targetParams.venturiEnabled = e.target.checked;
         });
-        venturiCheckbox.checked = state.windParams.venturiEnabled;
     }
+
+    // Set initial values from state
+    updateControlsFromState();
 }
 
 // --- Simulation Logic ---
@@ -322,10 +340,15 @@ function simulationLoop() {
     if (!state.isSimulating) return;
 
     // Update time for wind simulation
-    state.time += 0.01; // A simplified time progression
+    state.time += 0.016; // A simplified time progression, closer to 60fps
 
-    // Update wind by passing the editor's state
-    updateWind(state);
+    // Update wind by passing the necessary parts of the state
+    updateWind({
+        grid: state.grid,
+        windSources: state.windSources,
+        time: state.time,
+        globalWindMultiplier: state.globalWindMultiplier
+    });
 
     // Redraw the grid to show changes
     drawGrid();
@@ -344,9 +367,8 @@ function saveMap() {
         relief: state.grid.map(row => row.map(cell => parseFloat(cell.relief.toFixed(3)))),
         spawnPoint: state.spawnPoint,
         flagPosition: state.flagPosition,
-        windSources: state.windSources,
-        windParams: state.windParams,
-        windTempoParams: state.windTempoParams,
+        windSources: state.windSources, // Now includes params per source
+        // Global/default params are no longer saved at the root, but are loaded from the first source if available.
         globalWindMultiplier: state.globalWindMultiplier,
     };
     const filename = slugify(state.mapName) + '.json';
@@ -379,6 +401,7 @@ function loadMapFromFile() {
                     spawnPoint: null,
                     flagPosition: null,
                     windSources: [],
+                    selectedWindSource: null,
                     mapName: 'Nouvelle Carte',
                     mapOrder: 99,
                     windParams: { sourceScale: 10, maxMasse: 1.2, minCelerite: 0.1, maxCelerite: 1.0, reliefPenalty: 2.0, randomness: 0.2, venturiEnabled: true },
@@ -386,7 +409,7 @@ function loadMapFromFile() {
                     globalWindMultiplier: 1.0,
                 };
 
-                if (Array.isArray(data)) { // Old format
+                if (Array.isArray(data)) { // Very old format (relief only)
                     reliefGrid = data;
                     Object.assign(state, defaultState);
                     state.mapName = 'Carte importée (ancien format)';
@@ -395,19 +418,37 @@ function loadMapFromFile() {
                     // Load all properties, using defaults for any that are missing
                     state.spawnPoint = data.spawnPoint || defaultState.spawnPoint;
                     state.flagPosition = data.flagPosition || defaultState.flagPosition;
-                    state.windSources = data.windSources || defaultState.windSources;
                     state.mapName = data.name || defaultState.mapName;
                     state.mapOrder = data.order || defaultState.mapOrder;
-                    state.globalWindMultiplier = data.globalWindMultiplier || defaultState.globalWindMultiplier;
+                    state.globalWindMultiplier = data.globalWindMultiplier !== undefined ? data.globalWindMultiplier : defaultState.globalWindMultiplier;
+                    state.selectedWindSource = null; // Always reset selection
+
+                    // --- Wind Sources and Parameters Loading ---
+                    state.windSources = data.windSources || [];
+
+                    // Backward compatibility for maps with global windParams or missing gain
+                    state.windSources.forEach(source => {
+                        if (data.windParams && !source.windParams) {
+                            source.windParams = JSON.parse(JSON.stringify(data.windParams));
+                        }
+                        if (data.windTempoParams && !source.windTempoParams) {
+                            source.windTempoParams = JSON.parse(JSON.stringify(data.windTempoParams));
+                        }
+                        if (source.gain === undefined) {
+                            source.gain = 1.0;
+                        }
+                    });
                     
-                    // Safely merge wind params
-                    state.windParams = defaultState.windParams;
-                    if (data.windParams) {
-                        Object.assign(state.windParams, data.windParams);
-                    }
-                    state.windTempoParams = defaultState.windTempoParams;
-                    if (data.windTempoParams) {
-                        Object.assign(state.windTempoParams, data.windTempoParams);
+                    // Set the global default params from the first source if available, otherwise from saved global or absolute default
+                    if (state.windSources.length > 0) {
+                        Object.assign(state.windParams, state.windSources[0].windParams);
+                        Object.assign(state.windTempoParams, state.windSources[0].windTempoParams);
+                    } else if (data.windParams) {
+                         Object.assign(state.windParams, data.windParams);
+                         Object.assign(state.windTempoParams, data.windTempoParams || defaultState.windTempoParams);
+                    } else {
+                        state.windParams = defaultState.windParams;
+                        state.windTempoParams = defaultState.windTempoParams;
                     }
                 }
 
@@ -467,17 +508,59 @@ function handleCanvasClick(e) {
         case 'setWindSource':
             const cell = state.grid[clickedHex.r][clickedHex.c];
             const existingSourceIndex = state.windSources.findIndex(s => s.r === clickedHex.r && s.c === clickedHex.c);
+            
             if (existingSourceIndex !== -1) {
-                state.windSources.splice(existingSourceIndex, 1); // Remove if exists
-                cell.isSource = false;
+                const clickedSource = state.windSources[existingSourceIndex];
+                if (e.shiftKey) {
+                    // Remove source with Shift+Click
+                    state.windSources.splice(existingSourceIndex, 1);
+                    cell.isSource = false;
+                    if (state.selectedWindSource && state.selectedWindSource.r === clickedHex.r && state.selectedWindSource.c === clickedHex.c) {
+                        state.selectedWindSource = null;
+                    }
+                } else {
+                    // Select/deselect source
+                    if (state.selectedWindSource && state.selectedWindSource.r === clickedSource.r && state.selectedWindSource.c === clickedSource.c) {
+                        state.selectedWindSource = null;
+                    } else {
+                        state.selectedWindSource = clickedSource;
+                    }
+                }
             } else {
-                state.windSources.push(clickedHex); // Add if not exists
+                // Add a new source
+                const newSource = {
+                    r: clickedHex.r,
+                    c: clickedHex.c,
+                    gain: 1.0,
+                    windParams: JSON.parse(JSON.stringify(state.windParams)),
+                    windTempoParams: JSON.parse(JSON.stringify(state.windTempoParams))
+                };
+                state.windSources.push(newSource);
                 cell.isSource = true;
+                state.selectedWindSource = newSource;
+            }
+            updateControlsFromState();
+            break;
+        case 'moveWindSource':
+            if (state.selectedWindSource) {
+                const oldPos = { r: state.selectedWindSource.r, c: state.selectedWindSource.c };
+                state.grid[oldPos.r][oldPos.c].isSource = false;
+                
+                state.selectedWindSource.r = clickedHex.r;
+                state.selectedWindSource.c = clickedHex.c;
+                state.grid[clickedHex.r][clickedHex.c].isSource = true;
+                state.selectedWindSource = null; // Deselect after moving
+            } else {
+                const sourceToMoveIndex = state.windSources.findIndex(s => s.r === clickedHex.r && s.c === clickedHex.c);
+                if (sourceToMoveIndex !== -1) {
+                    state.selectedWindSource = state.windSources[sourceToMoveIndex];
+                }
             }
             break;
     }
     drawGrid();
 }
+
 
 function paintHexes(centerHex) {
     const centerCube = offsetToCube(centerHex);
@@ -580,7 +663,7 @@ function drawGrid() {
         const offset = (source.r % 2) * (GRID_HORIZ_SPACING / 2);
         const x = source.c * GRID_HORIZ_SPACING + offset;
         const y = source.r * GRID_VERT_SPACING;
-        drawWindSourceMarker(x + HEX_WIDTH / 2, y + HEX_HEIGHT / 2);
+        drawWindSourceMarker(x + HEX_WIDTH / 2, y + HEX_HEIGHT / 2, source);
     });
 
     ctx.restore();
@@ -639,13 +722,27 @@ function drawFlagMarker(x, y) {
     ctx.stroke();
 }
 
-function drawWindSourceMarker(x, y) {
+function drawWindSourceMarker(x, y, source) {
+    const isSelected = state.selectedWindSource && state.selectedWindSource.r === source.r && state.selectedWindSource.c === source.c;
+    const isMoveMode = state.brushMode === 'moveWindSource';
+
+    // Pulsating animation for selected source
+    const pulse = isSelected ? Math.sin(state.time * 5) * 0.1 + 0.9 : 1;
+    let radius = (isSelected ? BASE_HEX_SIZE / 2 : BASE_HEX_SIZE / 3) * pulse;
+    let fillColor = isSelected ? 'rgba(255, 100, 0, 1)' : 'rgba(255, 255, 0, 0.7)'; // Bright orange if selected, else yellow
+    let strokeColor = isSelected ? '#000000' : '#FFFFFF';
+    let lineWidth = (isSelected ? 3 : 1.5) / state.zoomLevel;
+
+    if (isSelected && isMoveMode) {
+        fillColor = 'rgba(0, 255, 0, 1)'; // Green when ready to move
+    }
+
     ctx.beginPath();
-    ctx.arc(x, y, BASE_HEX_SIZE / 3, 0, 2 * Math.PI);
-    ctx.fillStyle = 'rgba(255, 255, 0, 0.7)'; // Yellow
+    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = fillColor;
     ctx.fill();
     ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 1.5 / state.zoomLevel;
+    ctx.lineWidth = lineWidth;
     ctx.stroke();
 
     // Draw an arrow to indicate wind direction (right to left)
@@ -657,8 +754,8 @@ function drawWindSourceMarker(x, y) {
     ctx.lineTo(x - arrowLength / 2 + arrowHeadSize, y - arrowHeadSize);
     ctx.moveTo(x - arrowLength / 2, y);
     ctx.lineTo(x - arrowLength / 2 + arrowHeadSize, y + arrowHeadSize);
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 1.5 / state.zoomLevel;
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = (isSelected ? 2 : 1.5) / state.zoomLevel;
     ctx.stroke();
 }
 

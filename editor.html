@@ -194,7 +194,8 @@
                     <div class="button-group">
                         <button class="tool-button" data-tool="setSpawn">Placer Spawn</button>
                         <button class="tool-button" data-tool="setFlag">Placer Drapeau</button>
-                        <button class="tool-button" data-tool="setWindSource">Placer Source Vent</button>
+                        <button class="tool-button" data-tool="setWindSource">Placer/Gérer Source</button>
+                        <button class="tool-button" data-tool="moveWindSource">Déplacer Source</button>
                     </div>
                 </div>
 
@@ -202,9 +203,14 @@
                 <div class="panel-section">
                     <h3>Paramètres du Vent</h3>
                     <div>
-                        <label for="windSpeedSlider">Amplificateur Vent:</label>
-                        <input type="range" id="windSpeedSlider" min="0" max="100" value="45" step="1" title="Multiplicateur global de la force du vent. Affecte la puissance de toutes les sources de vent.">
-                        <span id="windSpeedValue">1.01</span>
+                        <label for="masterGainSlider">Master Gain:</label>
+                        <input type="range" id="masterGainSlider" min="0" max="100" value="45" step="1" title="Multiplicateur global de la force du vent. Affecte la puissance de toutes les sources de vent.">
+                        <span id="masterGainValue">1.01</span>
+                    </div>
+                    <div>
+                        <label for="trackGainSlider">Piste Gain:</label>
+                        <input type="range" id="trackGainSlider" min="0" max="2" value="1" step="0.05" title="Ajuste le gain pour la source de vent sélectionnée.">
+                        <span id="trackGainValue">1.00</span>
                     </div>
                     <div>
                         <label for="windSourceScaleSlider">Échelle Masse:</label>

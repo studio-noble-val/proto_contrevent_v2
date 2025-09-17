@@ -33,10 +33,10 @@ function getDownstreamNeighbors(r, c, gridRows, gridCols) {
 }
 
 
-export function updateWind(state) {
-    if (!state.grid.length || !state.grid[0].length) return;
-    const gridCols = state.grid[0].length;
-    const gridRows = state.grid.length;
+export function updateWind({ grid, windSources, time, globalWindMultiplier }) {
+    if (!grid.length || !grid[0].length) return;
+    const gridCols = grid[0].length;
+    const gridRows = grid.length;
 
     // 1. Créer une grille tampon vide pour le prochain état du vent
     const nextWindGrid = Array(gridRows).fill(null).map(() => Array(gridCols).fill(null).map(() => ({
@@ -46,39 +46,50 @@ export function updateWind(state) {
     })));
 
     // 2. Génération des bourrasques à toutes les sources actives
-    for (let r = 0; r < gridRows; r++) {
-        for (let c = 0; c < gridCols; c++) {
-            if (state.grid[r][c].isSource) {
-                // Probabilité de générer une bourrasque pour créer un effet de paquet
-                if (Math.random() > 0.6) {
-                    const noiseVal = PerlinNoise.noise(r / (state.windParams.sourceScale || 10), state.time);
-                    const masse = (noiseVal + 1) / 2 * (state.windParams.maxMasse || 1.2) * state.globalWindMultiplier;
-                    
-                    state.grid[r][c].wind = {
-                        masse: masse,
-                        celerite: (state.windParams.minCelerite || 0.1) + (1 - masse / (state.windParams.maxMasse || 1.2)) * ((state.windParams.maxCelerite || 1.0) - (state.windParams.minCelerite || 0.1)),
-                        direction: Math.PI, // Toujours vers la gauche pour l'instant
-                    };
-                } else {
-                    // Si pas de bourrasque, la masse est nulle
-                    state.grid[r][c].wind.masse = 0;
-                }
+    windSources.forEach(source => {
+        const { r, c, windParams, windTempoParams, gain } = source;
+        if (grid[r] && grid[r][c]) {
+            // Probabilité de générer une bourrasque pour créer un effet de paquet
+            if (Math.random() > 0.6) {
+                const noiseVal = PerlinNoise.noise(r / (windParams.sourceScale || 10), time);
+                const baseMasse = (noiseVal + 1) / 2 * (windParams.maxMasse || 1.2);
+                const masse = baseMasse * globalWindMultiplier * (gain !== undefined ? gain : 1.0);
+                
+                grid[r][c].wind = {
+                    masse: masse,
+                    celerite: (windParams.minCelerite || 0.1) + (1 - masse / (windParams.maxMasse || 1.2)) * ((windParams.maxCelerite || 1.0) - (windParams.minCelerite || 0.1)),
+                    direction: Math.PI, // Toujours vers la gauche pour l'instant
+                    // Store the params that will affect propagation
+                    params: windParams 
+                };
+            } else {
+                // Si pas de bourrasque, la masse est nulle
+                grid[r][c].wind.masse = 0;
             }
         }
-    }
+    });
+
 
     // 3. Propagation des bourrasques existantes
     for (let c = gridCols - 1; c >= 0; c--) {
         for (let r = 0; r < gridRows; r++) {
-            const currentCell = state.grid[r][c];
+            const currentCell = grid[r][c];
             if (currentCell.wind.masse <= 0.01) continue;
 
             const neighbors = getDownstreamNeighbors(r, c, gridRows, gridCols);
             if (neighbors.length === 0) continue;
+            
+            // Use the parameters stored in the wind itself
+            const propagationParams = currentCell.wind.params || {}; // Fallback to empty object
+            const reliefPenalty = propagationParams.reliefPenalty !== undefined ? propagationParams.reliefPenalty : 2.0;
+            const randomness = propagationParams.randomness !== undefined ? propagationParams.randomness : 0.2;
+            const venturiEnabled = propagationParams.venturiEnabled !== undefined ? propagationParams.venturiEnabled : true;
+            const maxMasse = propagationParams.maxMasse !== undefined ? propagationParams.maxMasse : 1.2;
+
 
             const weights = neighbors.map(n => {
-                const reliefCost = state.grid[n.r][n.c].relief * state.windParams.reliefPenalty;
-                const randomFactor = Math.random() * state.windParams.randomness;
+                const reliefCost = grid[n.r][n.c].relief * reliefPenalty;
+                const randomFactor = Math.random() * randomness;
                 return {
                     neighbor: n,
                     weight: 1 / (1 + reliefCost) + randomFactor
@@ -89,13 +100,13 @@ export function updateWind(state) {
             const targetNeighbor = weights[0].neighbor;
 
             let venturiEffect = 1;
-            if (state.venturiEnabled) {
-                const reliefDifference = Math.abs(currentCell.relief - state.grid[targetNeighbor.r][targetNeighbor.c].relief);
+            if (venturiEnabled) {
+                const reliefDifference = Math.abs(currentCell.relief - grid[targetNeighbor.r][targetNeighbor.c].relief);
                 venturiEffect = 1 + reliefDifference;
             }
             
             let newMasse = currentCell.wind.masse * venturiEffect;
-            newMasse = Math.min(newMasse, (state.windParams.maxMasse || 1.2) * 2);
+            newMasse = Math.min(newMasse, maxMasse * 2);
 
             const dx = targetNeighbor.c - c;
             const dy = targetNeighbor.r - r;
@@ -117,6 +128,7 @@ export function updateWind(state) {
                 targetCellInBuffer.direction = newDirection;
             }
             targetCellInBuffer.celerite = currentCell.wind.celerite;
+            targetCellInBuffer.params = propagationParams; // Carry over the params
 
             // --- NOUVELLE LOGIQUE : Laisser une "traînée" pour allonger la bourrasque ---
             const tailMasse = currentCell.wind.masse * 0.3; // La traînée est 30% de la masse originale
@@ -125,6 +137,7 @@ export function updateWind(state) {
                 currentCellInBuffer.masse = tailMasse;
                 currentCellInBuffer.direction = currentCell.wind.direction;
                 currentCellInBuffer.celerite = currentCell.wind.celerite;
+                currentCellInBuffer.params = propagationParams; // Carry over the params
             }
             // --- FIN DE LA NOUVELLE LOGIQUE ---
         }
@@ -133,7 +146,7 @@ export function updateWind(state) {
     // 4. Remplacer l'ancienne grille de vent par la nouvelle
     for (let r = 0; r < gridRows; r++) {
         for (let c = 0; c < gridCols; c++) {
-            state.grid[r][c].wind = nextWindGrid[r][c];
+            grid[r][c].wind = nextWindGrid[r][c];
         }
     }
 }

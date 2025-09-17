@@ -235,8 +235,15 @@ L'objectif est d'intégrer une simulation de vent interactive et configurable di
 - **Bouton "Sauvegarder" en Jeu :** En mode "Campagne", ajouter un bouton pour sauvegarder les ajustements des paramètres du vent. (Terminé)
 - **Mécanisme de Sauvegarde Sécurisé :** La sauvegarde générera un nouveau fichier de carte mis à jour à télécharger, que l'utilisateur devra manuellement utiliser pour remplacer l'ancien. (Terminé)
 
-### 8.4. Étape 4 : Architecture "Multi-pistes" & Groupes
-- **4a. Paramètres par Source :** Modifier la structure de données pour que chaque source de vent ait ses propres réglages (`windParams`, `windTempoParams`). L'interface de l'éditeur modifiera les paramètres de la source sélectionnée.
+### 8.4. Étape 4 : Architecture "Multi-pistes" & Groupes (En cours)
+- **4a. Paramètres par Source (Terminée) :** 
+    - La structure de données a été modifiée pour que chaque source de vent ait ses propres réglages (`windParams`, `windTempoParams`) ainsi qu'un gain individuel (`gain`).
+    - Le moteur de vent (`updateWind`) a été refactorisé pour simuler chaque source avec ses paramètres propres.
+    - L'interface de l'éditeur a été mise à jour pour permettre la sélection et la modification des paramètres de chaque source individuellement.
+    - La visibilité de la source sélectionnée a été grandement améliorée (taille, couleur, animation).
+    - Ajout de contrôles "Master Gain" (global) et "Piste Gain" (spécifique à la source).
+    - Il est désormais possible de déplacer et de supprimer les sources de vent.
+
 - **4b. Groupes & Synchronisation :** Étendre la structure de données pour permettre de grouper des sources. Ajouter des modes de synchronisation pour ces groupes (ex: "Simultané", "Séquence"). Créer l'interface de base pour créer et gérer ces groupes.
 
 ### 8.5. Étape 5 : Moteur de Vent Séquencé
