@@ -183,7 +183,7 @@ function setupEventListeners() {
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                alert('Les paramètres du vent ont été sauvegardés dans le fichier ' + filename + '.\nN'oubliez pas de remplacer l'ancien fichier de carte par celui que vous venez de télécharger.');
+                alert('Les paramètres du vent ont été sauvegardés dans le fichier ' + filename + '.\nN\'oubliez pas de remplacer l\'ancien fichier de carte par celui que vous venez de télécharger.');
 
             } catch (error) {
                 console.error("Erreur lors de la sauvegarde des paramètres de vent:", error);

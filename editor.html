@@ -127,6 +127,67 @@
             border-color: #0056b3;
         }
 
+        /* --- Modal Styles --- */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #2c2c2c;
+            border: 1px solid #555;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid #444;
+            background-color: #333;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.1em;
+        }
+
+        #modal-close-button {
+            background: none;
+            border: none;
+            color: #ccc;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 10px 15px;
+            border-top: 1px solid #444;
+            text-align: right;
+        }
+
     </style>
 </head>
 <body>
@@ -222,7 +283,31 @@
                     </div>
                 </div>
 
-                <!-- Wind Parameters -->
+                <!-- Wind Simulation -->
+                <div class="panel-section">
+                    <h3>Simulation du Vent</h3>
+                    <div class="button-group">
+                        <button id="start-sim-button" class="action-button">Lancer Sim</button>
+                        <button id="stop-sim-button" class="action-button">Stop Sim</button>
+                        <button id="reset-sim-button" class="action-button">Réinit Sim</button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main id="canvas-container">
+            <canvas id="editor-canvas"></canvas>
+        </main>
+    </div>
+
+    <!-- Wind Source Configuration Modal -->
+    <div id="wind-source-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Paramètres de la Source de Vent</h3>
+                <button id="modal-close-button">&times;</button>
+            </div>
+            <div class="modal-body">
                 <div class="panel-section">
                     <h3>Paramètres du Vent</h3>
                     <div>
@@ -284,22 +369,11 @@
                         <span id="noiseInfluenceValue">0.50</span>
                     </div>
                 </div>
-
-                <!-- Wind Simulation -->
-                <div class="panel-section">
-                    <h3>Simulation du Vent</h3>
-                    <div class="button-group">
-                        <button id="start-sim-button" class="action-button">Lancer Sim</button>
-                        <button id="stop-sim-button" class="action-button">Stop Sim</button>
-                        <button id="reset-sim-button" class="action-button">Réinit Sim</button>
-                    </div>
-                </div>
             </div>
-        </aside>
-
-        <main id="canvas-container">
-            <canvas id="editor-canvas"></canvas>
-        </main>
+            <div class="modal-footer">
+                <button id="modal-save-button" class="action-button">Sauvegarder</button>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="editor.js"></script>

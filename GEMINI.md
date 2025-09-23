@@ -257,3 +257,23 @@ L'objectif est d'intégrer une simulation de vent interactive et configurable di
 
 ### 8.6. Étape 6 : Refonte UI "Console à Vent"
 - Une fois que toute la logique fonctionnera, transformer l'apparence des contrôles de l'éditeur pour qu'ils adoptent l'esthétique d'une console de mixage (potards, faders, etc.).
+
+### 8.7. Amélioration de l'Éditeur de Vent (Session Actuelle)
+
+L'objectif est de finaliser et de rendre l'éditeur de vent pleinement fonctionnel et ergonomique, en se basant sur les retours utilisateurs.
+
+- **Objectif 1 : Refonte de l'UX/UI pour l'édition des sources.**
+    - **Tâche 1.1 :** Mettre en place une modale de configuration qui s'ouvre au clic sur une source de vent. (HTML/CSS terminé, implémentation JS en cours par l'utilisateur)
+    - **Tâche 1.2 :** Remplir la modale avec les paramètres spécifiques de la source sélectionnée (force, tempo, etc.).
+    - **Tâche 1.3 :** Implémenter la sauvegarde des paramètres depuis la modale vers l'objet de configuration de la carte.
+    - **Tâche 1.4 :** Assurer que le bouton "Sauvegarder la carte" enregistre bien ces nouvelles données dans le fichier `.json`.
+
+- **Objectif 2 : Correction des bugs et amélioration de l'ergonomie.**
+    - **Tâche 2.1 :** Analyser et corriger le mécanisme de déplacement des sources de vent qui ne fonctionne pas comme attendu.
+    - **Tâche 2.2 :** Clarifier l'interface en réorganisant ou en masquant les contrôles non essentiels (par exemple, les groupes, s'ils ne sont pas prioritaires).
+    - **Tâche 2.3 :** Améliorer le retour visuel lors de la sélection et du déplacement d'une source.
+
+- **Objectif 3 : Analyse et planification.**
+    - **Tâche 3.1 :** Examiner en détail le code de `editor.js`, `wind.js`, et `ui.js` pour comprendre l'état actuel.
+    - **Tâche 3.2 :** Valider le plan d'implémentation avant de commencer les modifications majeures.
+

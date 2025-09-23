@@ -33,7 +33,9 @@ function getDownstreamNeighbors(r, c, gridRows, gridCols) {
 }
 
 
-export function updateWind({ grid, windSources, windGroups, time, globalWindMultiplier }) {
+export function updateWind(state) {
+    const { grid, windSources, windGroups = [], time, globalWindMultiplier, windParams: defaultWindParams, windTempoParams: defaultWindTempoParams } = state;
+
     if (!grid.length || !grid[0].length) return;
     const gridCols = grid[0].length;
     const gridRows = grid.length;
@@ -50,7 +52,7 @@ export function updateWind({ grid, windSources, windGroups, time, globalWindMult
 
     // Process individual sources
     ungroupedSources.forEach(source => {
-        generateWindForSource(source, grid, time, globalWindMultiplier);
+        generateWindForSource(source, grid, time, globalWindMultiplier, defaultWindParams, defaultWindTempoParams);
     });
 
     // Process groups
@@ -59,7 +61,7 @@ export function updateWind({ grid, windSources, windGroups, time, globalWindMult
             group.sourceIds.forEach(sourceId => {
                 const source = windSources.find(s => s.id === sourceId);
                 if (source) {
-                    generateWindForSource(source, grid, time, globalWindMultiplier);
+                    generateWindForSource(source, grid, time, globalWindMultiplier, defaultWindParams, defaultWindTempoParams);
                 }
             });
         } else if (group.syncMode === 'sequence') {
@@ -68,7 +70,7 @@ export function updateWind({ grid, windSources, windGroups, time, globalWindMult
             const sourceId = group.sourceIds[sourceIndex];
             const source = windSources.find(s => s.id === sourceId);
             if (source) {
-                generateWindForSource(source, grid, time, globalWindMultiplier);
+                generateWindForSource(source, grid, time, globalWindMultiplier, defaultWindParams, defaultWindTempoParams);
             }
         }
     });
@@ -155,8 +157,11 @@ export function updateWind({ grid, windSources, windGroups, time, globalWindMult
     }
 }
 
-function generateWindForSource(source, grid, time, globalWindMultiplier) {
-    const { r, c, windParams, windTempoParams, gain } = source;
+function generateWindForSource(source, grid, time, globalWindMultiplier, defaultWindParams, defaultWindTempoParams) {
+    const { r, c, gain } = source;
+    const windParams = source.windParams || defaultWindParams;
+    const windTempoParams = source.windTempoParams || defaultWindTempoParams;
+
     if (grid[r] && grid[r][c]) {
         // Probabilité de générer une bourrasque pour créer un effet de paquet
         if (Math.random() > 0.6) {

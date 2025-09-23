@@ -43,6 +43,7 @@ const state = {
     simulationFrameId: null,
     time: 0,
     globalWindMultiplier: 1.0,
+    currentEditingSource: null,
     // Default wind parameters (will be configurable later)
     windParams: {
         sourceScale: 10,
@@ -62,7 +63,7 @@ const state = {
 };
 
 // --- DOM Elements ---
-let canvas, ctx, brushSizeInput, altitudeInput, intensityInput, toolButtons, paintToolOptionsPanel, sculptToolOptionsPanel, mapRowsInput, mapColsInput, editorSidebar, panelHeader, mapNameInput, mapOrderInput, canvasContainer, saveButton, loadFileButton, resizeButton, backToMenuButton, startSimButton, stopSimButton, resetSimButton, createGroupButton, groupSelect, deleteGroupButton, addToGroupButton, removeFromGroupButton, groupSyncModeSelect, deleteSourceButton;
+let canvas, ctx, brushSizeInput, altitudeInput, intensityInput, toolButtons, paintToolOptionsPanel, sculptToolOptionsPanel, mapRowsInput, mapColsInput, editorSidebar, panelHeader, mapNameInput, mapOrderInput, canvasContainer, saveButton, loadFileButton, resizeButton, backToMenuButton, startSimButton, stopSimButton, resetSimButton, createGroupButton, groupSelect, deleteGroupButton, addToGroupButton, removeFromGroupButton, groupSyncModeSelect, deleteSourceButton, windSourceModal, modalCloseButton, modalSaveButton;
 
 // --- Initialization ---
 function init() {
@@ -96,6 +97,9 @@ function init() {
     removeFromGroupButton = document.getElementById('remove-from-group-button');
     groupSyncModeSelect = document.getElementById('group-sync-mode');
     deleteSourceButton = document.getElementById('delete-source-button');
+    windSourceModal = document.getElementById('wind-source-modal');
+    modalCloseButton = document.getElementById('modal-close-button');
+    modalSaveButton = document.getElementById('modal-save-button');
 
     state.intensity = INTENSITY_LEVELS[intensityInput.value];
     state.mapName = mapNameInput.value;
@@ -141,37 +145,86 @@ function updateWindMultiplier(sliderValue) {
 }
 
 function updateControlsFromState() {
-    function updateSlider(sliderId, valueSpanId, value, decimals = 2) {
-        const slider = document.getElementById(sliderId);
-        const span = document.getElementById(valueSpanId);
-        if (slider) slider.value = value;
-        if (span) span.textContent = parseFloat(value).toFixed(decimals);
-    }
-
-    const firstSource = state.selectedWindSources[0];
-    const params = firstSource ? firstSource.windParams : state.windParams;
-    const tempoParams = firstSource ? firstSource.windTempoParams : state.windTempoParams;
-    const gain = firstSource ? firstSource.gain : 1.0;
-
-    updateSlider("trackGainSlider", "trackGainValue", gain, 2);
-    updateSlider("windSourceScaleSlider", "windSourceScaleValue", params.sourceScale, 0);
-    updateSlider("maxMasseSlider", "maxMasseValue", params.maxMasse, 1);
-    updateSlider("reliefPenaltySlider", "reliefPenaltyValue", params.reliefPenalty, 1);
-    updateSlider("randomnessSlider", "randomnessValue", params.randomness, 2);
-    updateSlider("baseIntervalSlider", "baseIntervalValue", tempoParams.baseInterval, 0);
-    updateSlider("rhythmFrequencySlider", "rhythmFrequencyValue", tempoParams.rhythmFrequency, 2);
-    updateSlider("rhythmAmplitudeSlider", "rhythmAmplitudeValue", tempoParams.rhythmAmplitude, 0);
-    updateSlider("noiseInfluenceSlider", "noiseInfluenceValue", tempoParams.noiseInfluence, 2);
-
-    const venturiCheckbox = document.getElementById('venturiEffectCheckbox');
-    if (venturiCheckbox) venturiCheckbox.checked = params.venturiEnabled;
-
     const masterGainSlider = document.getElementById('masterGainSlider');
     if (masterGainSlider) {
         const sliderValue = Math.sqrt(state.globalWindMultiplier / WIND_SCALE_FACTOR);
         masterGainSlider.value = sliderValue;
         updateWindMultiplier(sliderValue);
     }
+}
+
+// --- Modal Functions ---
+function openWindSourceModal(source) {
+    state.currentEditingSource = source;
+    state.selectedWindSources = [source]; // Also select it visually
+
+    // --- Populate UI from source data ---
+    const { windParams, windTempoParams, gain } = source;
+
+    // Helper to set slider and its corresponding text value
+    const setSliderValue = (id, value) => {
+        const slider = document.getElementById(id);
+        const valueSpan = document.getElementById(`${id}Value`);
+        if (slider) slider.value = value;
+        if (valueSpan) valueSpan.textContent = value;
+    };
+
+    // Set values for all controls in the modal
+    setSliderValue('modalTrackGainSlider', gain);
+    setSliderValue('modalWindSourceScaleSlider', windParams.sourceScale);
+    setSliderValue('modalMaxMasseSlider', windParams.maxMasse);
+    setSliderValue('modalReliefPenaltySlider', windParams.reliefPenalty);
+    setSliderValue('modalRandomnessSlider', windParams.randomness);
+    setSliderValue('modalBaseIntervalSlider', windTempoParams.baseInterval);
+    setSliderValue('modalRhythmFrequencySlider', windTempoParams.rhythmFrequency);
+    setSliderValue('modalRhythmAmplitudeSlider', windTempoParams.rhythmAmplitude);
+    setSliderValue('modalNoiseInfluenceSlider', windTempoParams.noiseInfluence);
+
+    const venturiCheckbox = document.getElementById('modalVenturiEffectCheckbox');
+    if (venturiCheckbox) {
+        venturiCheckbox.checked = windParams.venturiEnabled;
+    }
+
+    // Show the modal
+    windSourceModal.style.display = 'block';
+    drawGrid(); // Redraw to show selection
+}
+
+function closeWindSourceModal() {
+    windSourceModal.style.display = 'none';
+    state.currentEditingSource = null;
+    state.selectedWindSources = []; // Deselect when closing
+    drawGrid(); // Redraw to remove selection highlight
+}
+
+function saveModalChanges() {
+    if (!state.currentEditingSource) return;
+
+    const source = state.currentEditingSource;
+
+    // Helper to get value from a slider
+    const getSliderValue = (id, isFloat = true) => {
+        const slider = document.getElementById(id);
+        return isFloat ? parseFloat(slider.value) : parseInt(slider.value, 10);
+    };
+
+    // Update source properties from modal inputs
+    source.gain = getSliderValue('modalTrackGainSlider');
+    source.windParams.sourceScale = getSliderValue('modalWindSourceScaleSlider', false);
+    source.windParams.maxMasse = getSliderValue('modalMaxMasseSlider');
+    source.windParams.reliefPenalty = getSliderValue('modalReliefPenaltySlider');
+    source.windParams.randomness = getSliderValue('modalRandomnessSlider');
+    source.windTempoParams.baseInterval = getSliderValue('modalBaseIntervalSlider', false);
+    source.windTempoParams.rhythmFrequency = getSliderValue('modalRhythmFrequencySlider');
+    source.windTempoParams.rhythmAmplitude = getSliderValue('modalRhythmAmplitudeSlider', false);
+    source.windTempoParams.noiseInfluence = getSliderValue('modalNoiseInfluenceSlider');
+
+    const venturiCheckbox = document.getElementById('modalVenturiEffectCheckbox');
+    if (venturiCheckbox) {
+        source.windParams.venturiEnabled = venturiCheckbox.checked;
+    }
+
+    closeWindSourceModal();
 }
 
 function setupEventListeners() {
@@ -310,62 +363,15 @@ function setupEventListeners() {
     stopSimButton.addEventListener('click', stopSimulation);
     resetSimButton.addEventListener('click', resetSimulation);
 
-    // --- Wind Parameter Controls ---
-    function setupSlider(sliderId, valueSpanId, paramsKey, isTempoParam = false, isFloat = true, decimals = 2, isGain = false) {
-        const slider = document.getElementById(sliderId);
-        const span = document.getElementById(valueSpanId);
-        if (!slider || !span) return;
-
-        const update = (value) => {
-            const numValue = isFloat ? parseFloat(value) : parseInt(value);
-            state.selectedWindSources.forEach(source => {
-                if (isGain) {
-                    source.gain = numValue;
-                } else {
-                    const targetParams = isTempoParam ? source.windTempoParams : source.windParams;
-                    targetParams[paramsKey] = numValue;
-                }
-            });
-
-            if (state.selectedWindSources.length === 0 && !isGain) {
-                // Only update global defaults if no source is selected and it's not a gain slider
-                const targetParams = isTempoParam ? state.windTempoParams : state.windParams;
-                targetParams[paramsKey] = numValue;
-            }
-            span.textContent = numValue.toFixed(decimals);
-        };
-
-        slider.addEventListener('input', e => update(e.target.value));
-    }
-
-    // --- Wind & Tempo Sliders ---
-    setupSlider("trackGainSlider", "trackGainValue", "gain", false, true, 2, true);
-    setupSlider("windSourceScaleSlider", "windSourceScaleValue", "sourceScale", false, false, 0);
-    setupSlider("maxMasseSlider", "maxMasseValue", "maxMasse", false, true, 1);
-    setupSlider("reliefPenaltySlider", "reliefPenaltyValue", "reliefPenalty", false, true, 1);
-    setupSlider("randomnessSlider", "randomnessValue", "randomness", false, true, 2);
-    setupSlider("baseIntervalSlider", "baseIntervalValue", "baseInterval", true, false, 0);
-    setupSlider("rhythmFrequencySlider", "rhythmFrequencyValue", "rhythmFrequency", true, true, 2);
-    setupSlider("rhythmAmplitudeSlider", "rhythmAmplitudeValue", "rhythmAmplitude", true, false, 0);
-    setupSlider("noiseInfluenceSlider", "noiseInfluenceValue", "noiseInfluence", true, true, 2);
+    // --- Modal Controls ---
+    modalCloseButton.addEventListener('click', closeWindSourceModal);
+    modalSaveButton.addEventListener('click', saveModalChanges);
 
     // --- Special Handlers for non-standard sliders/checkboxes ---
     const masterGainSlider = document.getElementById('masterGainSlider');
     masterGainSlider.addEventListener('input', e => {
         updateWindMultiplier(e.target.value);
     });
-
-    const venturiCheckbox = document.getElementById('venturiEffectCheckbox');
-    if (venturiCheckbox) {
-        venturiCheckbox.addEventListener('change', e => {
-            state.selectedWindSources.forEach(source => {
-                source.windParams.venturiEnabled = e.target.checked;
-            });
-            if (state.selectedWindSources.length === 0) {
-                state.windParams.venturiEnabled = e.target.checked;
-            }
-        });
-    }
 
     // Set initial values from state
     updateControlsFromState();
@@ -498,13 +504,7 @@ function simulationLoop() {
     state.time += 0.016; // A simplified time progression, closer to 60fps
 
     // Update wind by passing the necessary parts of the state
-    updateWind({
-        grid: state.grid,
-        windSources: state.windSources,
-        windGroups: state.windGroups,
-        time: state.time,
-        globalWindMultiplier: state.globalWindMultiplier
-    });
+    updateWind(state);
 
     // Redraw the grid to show changes
     drawGrid();
@@ -665,24 +665,25 @@ function handleCanvasClick(e) {
             state.flagPosition = clickedHex;
             break;
         case 'setWindSource':
-            const cell = state.grid[clickedHex.r][clickedHex.c];
-            const existingSourceIndex = state.windSources.findIndex(s => s.r === clickedHex.r && s.c === clickedHex.c);
+            const existingSource = state.windSources.find(s => s.r === clickedHex.r && s.c === clickedHex.c);
             
-            if (existingSourceIndex === -1) {
-                // Add a new source and select it
+            if (existingSource) {
+                // If a source exists, open the modal to edit it.
+                openWindSourceModal(existingSource);
+            } else {
+                // If no source exists, create a new one and open the modal.
                 const newSource = {
                     id: Date.now(), // Simple unique ID
                     r: clickedHex.r,
                     c: clickedHex.c,
                     gain: 1.0,
-                    windParams: JSON.parse(JSON.stringify(state.windParams)),
+                    windParams: JSON.parse(JSON.stringify(state.windParams)), // Deep copy of defaults
                     windTempoParams: JSON.parse(JSON.stringify(state.windTempoParams))
                 };
                 state.windSources.push(newSource);
-                cell.isSource = true;
-                state.selectedWindSources = [newSource]; // Select the new source
+                state.grid[clickedHex.r][clickedHex.c].isSource = true;
+                openWindSourceModal(newSource);
             }
-            updateControlsFromState();
             break;
         case 'moveWindSource':
             if (state.selectedWindSources.length === 1) {

@@ -17,6 +17,7 @@ async function loadMap(mapUrl) {
         state.spawnPoint = null;
         state.flagPosition = null;
         state.windSources = [];
+        state.windGroups = [];
         return;
     }
 
@@ -33,12 +34,14 @@ async function loadMap(mapUrl) {
             state.spawnPoint = null;
             state.flagPosition = null;
             state.windSources = [];
+            state.windGroups = [];
             // Wind params will use defaults
         } else {
             state.grid = data.relief;
             state.spawnPoint = data.spawnPoint || null;
             state.flagPosition = data.flagPosition || null;
             state.windSources = data.windSources || [];
+            state.windGroups = data.windGroups || [];
 
             // Load wind parameters if they exist, merging with defaults
             if (data.windParams) {
@@ -59,6 +62,7 @@ async function loadMap(mapUrl) {
         state.spawnPoint = null;
         state.flagPosition = null;
         state.windSources = [];
+        state.windGroups = [];
     }
 }
 
