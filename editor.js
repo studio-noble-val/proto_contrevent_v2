@@ -44,6 +44,7 @@ const state = {
     time: 0,
     globalWindMultiplier: 1.0,
     currentEditingSource: null,
+    movingSource: null,
     // Default wind parameters (will be configurable later)
     windParams: {
         sourceScale: 10,
@@ -242,6 +243,7 @@ function setupEventListeners() {
             toolButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
             state.brushMode = button.dataset.tool;
+            state.movingSource = null; // Reset moving state when changing tools
             paintToolOptionsPanel.style.display = state.brushMode === 'paint' ? 'block' : 'none';
             sculptToolOptionsPanel.style.display = ['raise', 'lower'].includes(state.brushMode) ? 'block' : 'none';
         });
@@ -686,20 +688,25 @@ function handleCanvasClick(e) {
             }
             break;
         case 'moveWindSource':
-            if (state.selectedWindSources.length === 1) {
-                const sourceToMove = state.selectedWindSources[0];
-                const oldPos = { r: sourceToMove.r, c: sourceToMove.c };
-                state.grid[oldPos.r][oldPos.c].isSource = false;
-                
-                sourceToMove.r = clickedHex.r;
-                sourceToMove.c = clickedHex.c;
-                state.grid[clickedHex.r][clickedHex.c].isSource = true;
-                state.selectedWindSources = []; // Deselect after moving
-            } else if (state.selectedWindSources.length === 0) {
-                const sourceToMoveIndex = state.windSources.findIndex(s => s.r === clickedHex.r && s.c === clickedHex.c);
-                if (sourceToMoveIndex !== -1) {
-                    state.selectedWindSources = [state.windSources[sourceToMoveIndex]];
+            const sourceAtClick = state.windSources.find(s => s.r === clickedHex.r && s.c === clickedHex.c);
+
+            if (state.movingSource) {
+                // A source is being moved, place it here.
+                const oldPos = { r: state.movingSource.r, c: state.movingSource.c };
+                if (state.grid[oldPos.r] && state.grid[oldPos.r][oldPos.c]) {
+                    state.grid[oldPos.r][oldPos.c].isSource = false;
                 }
+
+                state.movingSource.r = clickedHex.r;
+                state.movingSource.c = clickedHex.c;
+                state.grid[clickedHex.r][clickedHex.c].isSource = true;
+                
+                state.movingSource = null; // Finish moving
+                state.selectedWindSources = []; // Deselect after moving
+            } else if (sourceAtClick) {
+                // No source is being moved, so pick this one up.
+                state.movingSource = sourceAtClick;
+                state.selectedWindSources = [sourceAtClick]; // Select it to give visual feedback
             }
             break;
     }
@@ -928,8 +935,8 @@ function drawWindSourceMarker(x, y, source) {
     let strokeColor = groupColor || (isSelected ? '#000000' : '#FFFFFF');
     let lineWidth = (isSelected || groupColor) ? 3 : 1.5 / state.zoomLevel;
 
-    if (isSelected && isMoveMode) {
-        fillColor = 'rgba(0, 255, 0, 1)'; // Green when ready to move
+    if (state.movingSource && state.movingSource.id === source.id) {
+        fillColor = 'rgba(0, 255, 0, 1)'; // Green when being moved
     }
 
     ctx.beginPath();
