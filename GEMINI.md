@@ -263,10 +263,10 @@ L'objectif est d'intégrer une simulation de vent interactive et configurable di
 L'objectif est de finaliser et de rendre l'éditeur de vent pleinement fonctionnel et ergonomique, en se basant sur les retours utilisateurs.
 
 - **Objectif 1 : Refonte de l'UX/UI pour l'édition des sources.**
-    - **Tâche 1.1 :** Mettre en place une modale de configuration qui s'ouvre au clic sur une source de vent. (HTML/CSS terminé, implémentation JS en cours par l'utilisateur)
-    - **Tâche 1.2 :** Remplir la modale avec les paramètres spécifiques de la source sélectionnée (force, tempo, etc.).
-    - **Tâche 1.3 :** Implémenter la sauvegarde des paramètres depuis la modale vers l'objet de configuration de la carte.
-    - **Tâche 1.4 :** Assurer que le bouton "Sauvegarder la carte" enregistre bien ces nouvelles données dans le fichier `.json`.
+    - **Tâche 1.1 :** Mettre en place une modale de configuration qui s'ouvre au clic sur une source de vent. (Terminé)
+    - **Tâche 1.2 :** Remplir la modale avec les paramètres spécifiques de la source sélectionnée (force, tempo, etc.). (Terminé)
+    - **Tâche 1.3 :** Implémenter la sauvegarde des paramètres depuis la modale vers l'objet de configuration de la carte. (Terminé)
+    - **Tâche 1.4 :** Assurer que le bouton "Sauvegarder la carte" enregistre bien ces nouvelles données dans le fichier `.json`. (En cours)
 
 - **Objectif 2 : Correction des bugs et amélioration de l'ergonomie.**
     - **Tâche 2.1 :** Analyser et corriger le mécanisme de déplacement des sources de vent qui ne fonctionne pas comme attendu.

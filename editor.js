@@ -166,21 +166,21 @@ function openWindSourceModal(source) {
         const slider = document.getElementById(id);
         const valueSpan = document.getElementById(`${id}Value`);
         if (slider) slider.value = value;
-        if (valueSpan) valueSpan.textContent = value;
+        if (valueSpan) valueSpan.textContent = parseFloat(value).toFixed(id.includes('Frequency') || id.includes('Randomness') || id.includes('Influence') ? 2 : (id.includes('Masse') || id.includes('Penalty') ? 1 : 0));
     };
 
     // Set values for all controls in the modal
-    setSliderValue('modalTrackGainSlider', gain);
-    setSliderValue('modalWindSourceScaleSlider', windParams.sourceScale);
-    setSliderValue('modalMaxMasseSlider', windParams.maxMasse);
-    setSliderValue('modalReliefPenaltySlider', windParams.reliefPenalty);
-    setSliderValue('modalRandomnessSlider', windParams.randomness);
-    setSliderValue('modalBaseIntervalSlider', windTempoParams.baseInterval);
-    setSliderValue('modalRhythmFrequencySlider', windTempoParams.rhythmFrequency);
-    setSliderValue('modalRhythmAmplitudeSlider', windTempoParams.rhythmAmplitude);
-    setSliderValue('modalNoiseInfluenceSlider', windTempoParams.noiseInfluence);
+    setSliderValue('trackGainSlider', gain);
+    setSliderValue('windSourceScaleSlider', windParams.sourceScale);
+    setSliderValue('maxMasseSlider', windParams.maxMasse);
+    setSliderValue('reliefPenaltySlider', windParams.reliefPenalty);
+    setSliderValue('randomnessSlider', windParams.randomness);
+    setSliderValue('baseIntervalSlider', windTempoParams.baseInterval);
+    setSliderValue('rhythmFrequencySlider', windTempoParams.rhythmFrequency);
+    setSliderValue('rhythmAmplitudeSlider', windTempoParams.rhythmAmplitude);
+    setSliderValue('noiseInfluenceSlider', windTempoParams.noiseInfluence);
 
-    const venturiCheckbox = document.getElementById('modalVenturiEffectCheckbox');
+    const venturiCheckbox = document.getElementById('venturiEffectCheckbox');
     if (venturiCheckbox) {
         venturiCheckbox.checked = windParams.venturiEnabled;
     }
@@ -209,17 +209,17 @@ function saveModalChanges() {
     };
 
     // Update source properties from modal inputs
-    source.gain = getSliderValue('modalTrackGainSlider');
-    source.windParams.sourceScale = getSliderValue('modalWindSourceScaleSlider', false);
-    source.windParams.maxMasse = getSliderValue('modalMaxMasseSlider');
-    source.windParams.reliefPenalty = getSliderValue('modalReliefPenaltySlider');
-    source.windParams.randomness = getSliderValue('modalRandomnessSlider');
-    source.windTempoParams.baseInterval = getSliderValue('modalBaseIntervalSlider', false);
-    source.windTempoParams.rhythmFrequency = getSliderValue('modalRhythmFrequencySlider');
-    source.windTempoParams.rhythmAmplitude = getSliderValue('modalRhythmAmplitudeSlider', false);
-    source.windTempoParams.noiseInfluence = getSliderValue('modalNoiseInfluenceSlider');
+    source.gain = getSliderValue('trackGainSlider');
+    source.windParams.sourceScale = getSliderValue('windSourceScaleSlider', false);
+    source.windParams.maxMasse = getSliderValue('maxMasseSlider');
+    source.windParams.reliefPenalty = getSliderValue('reliefPenaltySlider');
+    source.windParams.randomness = getSliderValue('randomnessSlider');
+    source.windTempoParams.baseInterval = getSliderValue('baseIntervalSlider', false);
+    source.windTempoParams.rhythmFrequency = getSliderValue('rhythmFrequencySlider');
+    source.windTempoParams.rhythmAmplitude = getSliderValue('rhythmAmplitudeSlider', false);
+    source.windTempoParams.noiseInfluence = getSliderValue('noiseInfluenceSlider');
 
-    const venturiCheckbox = document.getElementById('modalVenturiEffectCheckbox');
+    const venturiCheckbox = document.getElementById('venturiEffectCheckbox');
     if (venturiCheckbox) {
         source.windParams.venturiEnabled = venturiCheckbox.checked;
     }
