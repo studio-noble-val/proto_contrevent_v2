@@ -43,6 +43,7 @@ async function loadMap(mapUrl) {
             state.flagPosition = data.flagPosition || null;
             state.windSources = data.windSources || [];
             state.windGroups = data.windGroups || [];
+            state.narrativePOIs = data.narrativePOIs || [];
 
             // Load wind parameters if they exist, merging with defaults
             if (data.windParams) {
@@ -78,9 +79,6 @@ async function init() {
     horde.init(canvas, ctx);
     camera.init(canvas, ctx);
     ui.init(canvas);
-
-    // 4. Load narrative events
-    await narrativeManager.loadEvents();
 
     // 3. Determine game mode and load/create map data
     const urlParams = new URLSearchParams(window.location.search);
@@ -177,7 +175,7 @@ function update() {
     const gameStateForNarrative = {
         levelId: state.currentMap,
         horde: state.horde,
-        narrativeZones: state.narrativeZones || [],
+        narrativePOIs: state.narrativePOIs || [],
         // We can add more state info as needed, e.g., camera, grid
     };
     narrativeManager.update(gameStateForNarrative);

@@ -28,4 +28,5 @@ export const state = {
         rhythmAmplitude: 100, // ms
         noiseInfluence: 0.5,
     },
+    narrativePOIs: [],
 };

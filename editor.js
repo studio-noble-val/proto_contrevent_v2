@@ -45,9 +45,9 @@ const state = {
     globalWindMultiplier: 1.0,
     currentEditingSource: null,
     movingSource: null,
-    narrativeZones: [],
-    currentDrawingZone: null,
-    currentEventId: '',
+    narrativePOIs: [],
+    movingPOI: null,
+    currentEditingPOI: null,
     // Default wind parameters (will be configurable later)
     windParams: {
         sourceScale: 10,
@@ -67,7 +67,7 @@ const state = {
 };
 
 // --- DOM Elements ---
-let canvas, ctx, brushSizeInput, altitudeInput, intensityInput, toolButtons, paintToolOptionsPanel, sculptToolOptionsPanel, mapRowsInput, mapColsInput, editorSidebar, panelHeader, mapNameInput, mapOrderInput, canvasContainer, saveButton, loadFileButton, resizeButton, backToMenuButton, startSimButton, stopSimButton, resetSimButton, createGroupButton, groupSelect, deleteGroupButton, addToGroupButton, removeFromGroupButton, groupSyncModeSelect, deleteSourceButton, windSourceModal, modalCloseButton, modalSaveButton, eventIdInput;
+let canvas, ctx, brushSizeInput, altitudeInput, intensityInput, toolButtons, paintToolOptionsPanel, sculptToolOptionsPanel, mapRowsInput, mapColsInput, editorSidebar, panelHeader, mapNameInput, mapOrderInput, canvasContainer, saveButton, loadFileButton, resizeButton, backToMenuButton, startSimButton, stopSimButton, resetSimButton, createGroupButton, groupSelect, deleteGroupButton, addToGroupButton, removeFromGroupButton, groupSyncModeSelect, deleteSourceButton, windSourceModal, modalCloseButton, modalSaveButton, poiModal, poiModalCloseButton, poiEventIdInput, poiModalSaveButton, poiModalDeleteButton, poiEventType, poiCinematicFields, poiCinematicTitle, poiCinematicText, poiDialogueFields, poiDialogueCharacter, poiDialogueText, poiDialogueChoice1Text, poiDialogueChoice1ActionType, poiDialogueChoice1ActionParam1, poiDialogueChoice1ActionParam2, poiDialogueChoice2Text, poiDialogueChoice2ActionType, poiDialogueChoice2ActionParam1, poiDialogueChoice2ActionParam2;
 
 // --- Initialization ---
 function init() {
@@ -104,7 +104,28 @@ function init() {
     windSourceModal = document.getElementById('wind-source-modal');
     modalCloseButton = document.getElementById('modal-close-button');
     modalSaveButton = document.getElementById('modal-save-button');
-    eventIdInput = document.getElementById('event-id');
+
+    // POI Modal elements
+    poiModal = document.getElementById('poi-modal');
+    poiModalCloseButton = document.getElementById('poi-modal-close-button');
+    poiEventIdInput = document.getElementById('poi-event-id');
+    poiModalSaveButton = document.getElementById('poi-modal-save-button');
+    poiModalDeleteButton = document.getElementById('poi-modal-delete-button');
+    poiEventType = document.getElementById('poi-event-type');
+    poiCinematicFields = document.getElementById('poi-cinematic-fields');
+    poiCinematicTitle = document.getElementById('poi-cinematic-title');
+    poiCinematicText = document.getElementById('poi-cinematic-text');
+    poiDialogueFields = document.getElementById('poi-dialogue-fields');
+    poiDialogueCharacter = document.getElementById('poi-dialogue-character');
+    poiDialogueText = document.getElementById('poi-dialogue-text');
+    poiDialogueChoice1Text = document.getElementById('poi-dialogue-choice1-text');
+    poiDialogueChoice1ActionType = document.getElementById('poi-dialogue-choice1-action-type');
+    poiDialogueChoice1ActionParam1 = document.getElementById('poi-dialogue-choice1-action-param1');
+    poiDialogueChoice1ActionParam2 = document.getElementById('poi-dialogue-choice1-action-param2');
+    poiDialogueChoice2Text = document.getElementById('poi-dialogue-choice2-text');
+    poiDialogueChoice2ActionType = document.getElementById('poi-dialogue-choice2-action-type');
+    poiDialogueChoice2ActionParam1 = document.getElementById('poi-dialogue-choice2-action-param1');
+    poiDialogueChoice2ActionParam2 = document.getElementById('poi-dialogue-choice2-action-param2');
 
     state.intensity = INTENSITY_LEVELS[intensityInput.value];
     state.mapName = mapNameInput.value;
@@ -232,6 +253,137 @@ function saveModalChanges() {
     closeWindSourceModal();
 }
 
+// --- POI Modal Functions ---
+function openPOIModal(poi) {
+    state.currentEditingPOI = poi;
+    const { event } = poi;
+
+    // 1. Set common fields
+    poiEventIdInput.value = event.id;
+    poiEventType.value = event.type;
+
+    // 2. Display the correct form section
+    updatePOIModalForm(event.type);
+
+    // 3. Populate the fields
+    if (event.type === 'dialogue') {
+        const { content } = event;
+        poiDialogueCharacter.value = content.character || '';
+        poiDialogueText.value = content.text || '';
+
+        // Clear all choice fields before populating
+        const fields = [poiDialogueChoice1Text, poiDialogueChoice1ActionParam1, poiDialogueChoice1ActionParam2, poiDialogueChoice2Text, poiDialogueChoice2ActionParam1, poiDialogueChoice2ActionParam2];
+        fields.forEach(f => f.value = '');
+
+        // Populate choices
+        if (content.choices) {
+            if (content.choices[0]) {
+                const choice = content.choices[0];
+                poiDialogueChoice1Text.value = choice.text || '';
+                poiDialogueChoice1ActionType.value = choice.action.type || 'stat_change';
+                poiDialogueChoice1ActionParam1.value = choice.action.stat || choice.action.entry || '';
+                poiDialogueChoice1ActionParam2.value = choice.action.value !== undefined ? choice.action.value : '';
+            }
+            if (content.choices[1]) {
+                const choice = content.choices[1];
+                poiDialogueChoice2Text.value = choice.text || '';
+                poiDialogueChoice2ActionType.value = choice.action.type || 'stat_change';
+                poiDialogueChoice2ActionParam1.value = choice.action.stat || choice.action.entry || '';
+                poiDialogueChoice2ActionParam2.value = choice.action.value !== undefined ? choice.action.value : '';
+            }
+        }
+
+    } else if (event.type === 'cinematic') {
+        const { content } = event;
+        poiCinematicTitle.value = content.title || '';
+        poiCinematicText.value = Array.isArray(content.text) ? content.text.join('\n') : (content.text || '');
+    }
+
+    // 4. Show the modal
+    poiModal.style.display = 'block';
+    drawGrid(); // To highlight the selected POI
+}
+
+function closePOIModal() {
+    poiModal.style.display = 'none';
+    state.currentEditingPOI = null;
+    drawGrid(); // To remove highlight
+}
+
+function savePOIModalChanges() {
+    if (!state.currentEditingPOI) return;
+
+    const { event } = state.currentEditingPOI;
+
+    // 1. Read common fields
+    event.id = poiEventIdInput.value.trim();
+    event.type = poiEventType.value;
+
+    // 2. Rebuild content object based on type
+    if (event.type === 'dialogue') {
+        event.content = {
+            character: poiDialogueCharacter.value,
+            text: poiDialogueText.value,
+            choices: []
+        };
+
+        // Rebuild choice 1
+        if (poiDialogueChoice1Text.value) {
+            const choice = { text: poiDialogueChoice1Text.value };
+            const actionType = poiDialogueChoice1ActionType.value;
+            const param1 = poiDialogueChoice1ActionParam1.value;
+            const param2 = poiDialogueChoice1ActionParam2.value;
+            if (actionType === 'stat_change') {
+                choice.action = { type: actionType, target: 'group', stat: param1, value: parseInt(param2, 10) || 0 };
+            } else { // log_entry
+                choice.action = { type: actionType, entry: param1 };
+            }
+            event.content.choices.push(choice);
+        }
+
+        // Rebuild choice 2
+        if (poiDialogueChoice2Text.value) {
+            const choice = { text: poiDialogueChoice2Text.value };
+            const actionType = poiDialogueChoice2ActionType.value;
+            const param1 = poiDialogueChoice2ActionParam1.value;
+            const param2 = poiDialogueChoice2ActionParam2.value;
+            if (actionType === 'stat_change') {
+                choice.action = { type: actionType, target: 'group', stat: param1, value: parseInt(param2, 10) || 0 };
+            } else { // log_entry
+                choice.action = { type: actionType, entry: param1 };
+            }
+            event.content.choices.push(choice);
+        }
+
+    } else if (event.type === 'cinematic') {
+        event.content = {
+            title: poiCinematicTitle.value,
+            text: poiCinematicText.value.split('\n').filter(line => line) // Split and remove empty lines
+        };
+    }
+
+    // 3. Close modal and redraw
+    closePOIModal();
+}
+
+function deleteCurrentPOI() {
+    if (!state.currentEditingPOI) return;
+    if (confirm(`Voulez-vous vraiment supprimer le POI avec l\'ID "${state.currentEditingPOI.event.id}" ?`)) {
+        state.narrativePOIs = state.narrativePOIs.filter(p => p.poiId !== state.currentEditingPOI.poiId);
+        closePOIModal();
+    }
+}
+
+function updatePOIModalForm(type) {
+    if (type === 'dialogue') {
+        poiDialogueFields.style.display = 'block';
+        poiCinematicFields.style.display = 'none';
+    } else { // cinematic
+        poiDialogueFields.style.display = 'none';
+        poiCinematicFields.style.display = 'block';
+    }
+}
+
 function setupEventListeners() {
     // Toolbar listeners
     mapNameInput.addEventListener('change', e => state.mapName = e.target.value);
@@ -240,7 +392,6 @@ function setupEventListeners() {
     altitudeInput.addEventListener('input', e => state.altitude = parseFloat(e.target.value));
     intensityInput.addEventListener('input', e => state.intensity = INTENSITY_LEVELS[e.target.value]);
     backToMenuButton.addEventListener('click', () => window.location.href = 'index.html');
-    eventIdInput.addEventListener('change', e => state.currentEventId = e.target.value.trim());
 
     // Tool selection
     toolButtons.forEach(button => {
@@ -278,14 +429,10 @@ function setupEventListeners() {
                 state.selectionEnd = mousePos;
             } else if (['paint', 'raise', 'lower'].includes(state.brushMode)) {
                 state.isPainting = true;
-                            }
-                            handleCanvasClick(e);
-                        } else if (e.button === 2) { // Right mouse
-                            if (state.brushMode === 'drawZone' && state.currentDrawingZone) {
-                                e.preventDefault(); // Prevent context menu
-                                finishCurrentZone();
-                            }
-                        }    });
+            }
+            handleCanvasClick(e);
+        }
+    });
 
     window.addEventListener('mouseup', e => {
         if (state.isSelecting) {
@@ -377,6 +524,12 @@ function setupEventListeners() {
     // --- Modal Controls ---
     modalCloseButton.addEventListener('click', closeWindSourceModal);
     modalSaveButton.addEventListener('click', saveModalChanges);
+
+    // --- POI Modal Controls ---
+    poiModalCloseButton.addEventListener('click', closePOIModal);
+    poiModalSaveButton.addEventListener('click', savePOIModalChanges);
+    poiModalDeleteButton.addEventListener('click', deleteCurrentPOI);
+    poiEventType.addEventListener('change', () => updatePOIModalForm(poiEventType.value));
 
     // --- Special Handlers for non-standard sliders/checkboxes ---
     const masterGainSlider = document.getElementById('masterGainSlider');
@@ -537,7 +690,7 @@ function saveMap() {
         windSources: state.windSources,
         windGroups: state.windGroups,
         globalWindMultiplier: state.globalWindMultiplier,
-        narrativeZones: state.narrativeZones,
+        narrativePOIs: state.narrativePOIs,
     };
     const filename = slugify(state.mapName) + '.json';
     const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: 'application/json' });
@@ -594,9 +747,7 @@ function loadMapFromFile() {
                     // --- Wind Sources and Parameters Loading ---
                     state.windSources = data.windSources || [];
                     state.windGroups = data.windGroups || [];
-
-                    // --- Narrative Zones Loading ---
-                    state.narrativeZones = data.narrativeZones || [];
+                    state.narrativePOIs = data.narrativePOIs || [];
 
                     // Backward compatibility for maps with global windParams or missing gain/id
                     state.windSources.forEach((source, index) => {
@@ -668,6 +819,12 @@ function handleCanvasClick(e) {
     if (!state.grid[clickedHex.r] || !state.grid[clickedHex.r][clickedHex.c]) return;
 
     switch (state.brushMode) {
+        case 'select':
+            const clickedPOI = state.narrativePOIs.find(p => p.r === clickedHex.r && p.c === clickedHex.c);
+            if (clickedPOI) {
+                openPOIModal(clickedPOI);
+            }
+            break;
         case 'paint':
         case 'raise':
         case 'lower':
@@ -721,12 +878,65 @@ function handleCanvasClick(e) {
                 state.movingSource = sourceAtClick;
             }
             break;
-        case "drawZone":
-            const worldPos = getTransformedMousePos(e);
-            if (!state.currentDrawingZone) {
-                startNewZone(worldPos);
+        case 'addPOI':
+            // Check if a POI already exists at this location
+            const existingPOI = state.narrativePOIs.find(p => p.r === clickedHex.r && p.c === clickedHex.c);
+            
+            if (!existingPOI) {
+                const newPOI = {
+                    poiId: Date.now(),
+                    r: clickedHex.r,
+                    c: clickedHex.c,
+                    event: {
+                        id: `event_${clickedHex.r}_${clickedHex.c}`,
+                        type: "dialogue",
+                        content: {
+                            character: "Personnage",
+                            text: "Texte du dialogue à modifier.",
+                            choices: [
+                                {
+                                    text: "Choix 1",
+                                    action: {
+                                        type: "stat_change",
+                                        target: "group",
+                                        stat: "stamina",
+                                        value: 0
+                                    }
+                                },
+                                {
+                                    text: "Choix 2",
+                                    action: {
+                                        type: "log_entry",
+                                        entry: "Le choix 2 a été fait."
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                };
+                state.narrativePOIs.push(newPOI);
+                openPOIModal(newPOI); // Automatically open the modal for the new POI
+            }
+            // If a POI exists, do nothing, as the 'select' tool is used for editing.
+            break;
+        case 'movePOI':
+            if (state.movingPOI) {
+                // We are placing the POI
+                const destinationPOI = state.narrativePOIs.find(p => p.r === clickedHex.r && p.c === clickedHex.c);
+                if (!destinationPOI || destinationPOI.poiId === state.movingPOI.poiId) {
+                    // Place it on the new cell
+                    state.movingPOI.r = clickedHex.r;
+                    state.movingPOI.c = clickedHex.c;
+                    state.movingPOI = null; // We've placed it, so our hand is empty now
+                } else {
+                    // The destination is occupied by another POI, do nothing.
+                }
             } else {
-                addPointToCurrentZone(worldPos);
+                // We are picking up a POI
+                const poiToMove = state.narrativePOIs.find(p => p.r === clickedHex.r && p.c === clickedHex.c);
+                if (poiToMove) {
+                    state.movingPOI = poiToMove;
+                }
             }
             break;
     }
@@ -869,8 +1079,13 @@ function drawGrid() {
         drawWindSourceMarker(x + HEX_WIDTH / 2, y + HEX_HEIGHT / 2, source);
     });
 
-    // Draw narrative zones within the transformed context
-    drawNarrativeZones();
+    // Draw Narrative POIs
+    state.narrativePOIs.forEach(poi => {
+        const offset = (poi.r % 2) * (GRID_HORIZ_SPACING / 2);
+        const x = poi.c * GRID_HORIZ_SPACING + offset;
+        const y = poi.r * GRID_VERT_SPACING;
+        drawPOIMarker(x + HEX_WIDTH / 2, y + HEX_HEIGHT / 2, poi);
+    });
 
     ctx.restore();
 
@@ -984,89 +1199,32 @@ function drawWindSourceMarker(x, y, source) {
     ctx.stroke();
 }
 
+function drawPOIMarker(x, y, poi) {
+    const isMoving = state.movingPOI && state.movingPOI.poiId === poi.poiId;
+    const isEditing = state.currentEditingPOI && state.currentEditingPOI.poiId === poi.poiId;
+    const size = BASE_HEX_SIZE / 2; // Agrandissement du symbole
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(Math.PI / 4); // Rotate to make it a diamond
+    ctx.fillStyle = isMoving ? 'rgba(0, 255, 0, 0.7)' : 'rgba(128, 0, 128, 0.7)'; // Green if moving, else purple
+    ctx.strokeStyle = isEditing ? '#FFD700' : '#FFFFFF'; // Gold if editing, else white
+    ctx.lineWidth = isEditing ? 4 / state.zoomLevel : 2 / state.zoomLevel;
+    ctx.fillRect(-size / 2, -size / 2, size, size);
+    ctx.strokeRect(-size / 2, -size / 2, size, size);
+    ctx.restore();
+
+    // Draw the narrativeId text
+    ctx.fillStyle = 'black'; // Texte en noir
+    ctx.font = `${12 / state.zoomLevel}px sans-serif`; // Police légèrement agrandie
+    ctx.textAlign = 'center';
+    ctx.fillText(poi.event.id, x, y + size * 1.8); // Décalage vers le bas accentué
+}
+
 function getGroupColor(groupId) {
     const i = state.windGroups.findIndex(g => g.id === groupId);
     if (i === -1) return null;
     const hue = (i * 137.5) % 360; // Golden angle for distinct colors
     return `hsl(${hue}, 70%, 50%)`;
-}
-
-// --- Narrative Zone Functions ---
-function startNewZone(startPoint) {
-    if (!state.currentEventId) {
-        alert("Veuillez d'abord entrer un 'Event ID' pour la zone narrative.");
-        return;
-    }
-    state.currentDrawingZone = {
-        id: state.currentEventId,
-        points: [startPoint]
-    };
-}
-
-function addPointToCurrentZone(point) {
-    if (state.currentDrawingZone) {
-        state.currentDrawingZone.points.push(point);
-    }
-}
-
-function finishCurrentZone() {
-    if (state.currentDrawingZone && state.currentDrawingZone.points.length > 2) {
-        state.narrativeZones.push(state.currentDrawingZone);
-    }
-    state.currentDrawingZone = null;
-    drawGrid();
-}
-
-function drawNarrativeZones() {
-    if (!ctx) return; // Ensure context is available
-
-    // Draw completed zones
-    ctx.lineWidth = 2 / state.zoomLevel;
-    ctx.font = `${14 / state.zoomLevel}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    state.narrativeZones.forEach(zone => {
-        if (!zone.points || zone.points.length < 1) return;
-        ctx.beginPath();
-        zone.points.forEach((point, index) => {
-            if (index === 0) {
-                ctx.moveTo(point.x, point.y);
-            } else {
-                ctx.lineTo(point.x, point.y);
-            }
-        });
-        ctx.closePath();
-        ctx.fillStyle = 'rgba(255, 0, 255, 0.15)';
-        ctx.strokeStyle = 'rgba(255, 0, 255, 0.7)';
-        ctx.fill();
-        ctx.stroke();
-
-        // Draw the ID label in the center of the zone
-        if (zone.points.length > 0) {
-            const centerX = zone.points.reduce((sum, p) => sum + p.x, 0) / zone.points.length;
-            const centerY = zone.points.reduce((sum, p) => sum + p.y, 0) / zone.points.length;
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.fillText(zone.id, centerX, centerY);
-        }
-    });
-
-    // Draw the zone currently being created
-    if (state.currentDrawingZone) {
-        ctx.beginPath();
-        state.currentDrawingZone.points.forEach((point, index) => {
-            if (index === 0) {
-                ctx.moveTo(point.x, point.y);
-            } else {
-                ctx.lineTo(point.x, point.y);
-            }
-            // Draw vertex points
-            ctx.fillStyle = 'rgba(255, 0, 255, 1)';
-            ctx.fillRect(point.x - 3 / state.zoomLevel, point.y - 3 / state.zoomLevel, 6 / state.zoomLevel, 6 / state.zoomLevel);
-        });
-        ctx.strokeStyle = 'rgba(255, 0, 255, 1)';
-        ctx.stroke();
-    }
 }
 
 // --- Initialization ---

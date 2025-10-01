@@ -262,15 +262,12 @@
                     </div>
                 </div>
 
-                <!-- Narrative Elements -->
+                <!-- Narrative Elements (placeholder for future POI tool) -->
                 <div class="panel-section">
                     <h3>Éléments Narratifs</h3>
                     <div class="button-group">
-                        <button class="tool-button" data-tool="drawZone">Dessiner Zone</button>
-                    </div>
-                    <div class="control-group">
-                        <label for="event-id">Event ID:</label>
-                        <input type="text" id="event-id" placeholder="event_id_ici">
+                        <button class="tool-button" data-tool="addPOI">Ajouter POI</button>
+                        <button class="tool-button" data-tool="movePOI">Déplacer POI</button>
                     </div>
                 </div>
 
@@ -384,6 +381,99 @@
             </div>
             <div class="modal-footer">
                 <button id="modal-save-button" class="action-button">Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- POI Configuration Modal -->
+    <div id="poi-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Paramètres du Point d'Intérêt Narratif</h3>
+                <button id="poi-modal-close-button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="control-group">
+                    <label for="poi-event-id">Event ID:</label>
+                    <input type="text" id="poi-event-id" placeholder="id_unique_event">
+                </div>
+                <div class="control-group">
+                    <label for="poi-event-type">Type d'événement:</label>
+                    <select id="poi-event-type">
+                        <option value="dialogue">Dialogue</option>
+                        <option value="cinematic">Cinématique</option>
+                    </select>
+                </div>
+
+                <!-- Champs pour le type CINEMATIC -->
+                <div id="poi-cinematic-fields" style="display: none;">
+                    <hr>
+                    <h4>Paramètres Cinématique</h4>
+                    <div class="control-group">
+                        <label for="poi-cinematic-title">Titre:</label>
+                        <input type="text" id="poi-cinematic-title">
+                    </div>
+                    <div class="control-group">
+                        <label for="poi-cinematic-text">Texte (1 ligne par paragraphe):</label>
+                        <textarea id="poi-cinematic-text" rows="4"></textarea>
+                    </div>
+                </div>
+
+                <!-- Champs pour le type DIALOGUE -->
+                <div id="poi-dialogue-fields" style="display: none;">
+                    <hr>
+                    <h4>Paramètres Dialogue</h4>
+                    <div class="control-group">
+                        <label for="poi-dialogue-character">Personnage:</label>
+                        <input type="text" id="poi-dialogue-character">
+                    </div>
+                    <div class="control-group">
+                        <label for="poi-dialogue-text">Texte du dialogue:</label>
+                        <textarea id="poi-dialogue-text" rows="3"></textarea>
+                    </div>
+                    
+                    <h5>Choix de Dialogue</h5>
+                    <!-- Choix 1 -->
+                    <div class="panel-section">
+                        <div class="control-group">
+                            <label for="poi-dialogue-choice1-text">Texte Choix 1:</label>
+                            <input type="text" id="poi-dialogue-choice1-text">
+                        </div>
+                        <div class="control-group">
+                            <label>Action Choix 1:</label>
+                            <select id="poi-dialogue-choice1-action-type">
+                                <option value="stat_change">Changement Stat</option>
+                                <option value="log_entry">Entrée Journal</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <input type="text" id="poi-dialogue-choice1-action-param1" placeholder="stat/entry">
+                            <input type="text" id="poi-dialogue-choice1-action-param2" placeholder="value">
+                        </div>
+                    </div>
+                    <!-- Choix 2 -->
+                    <div class="panel-section">
+                        <div class="control-group">
+                            <label for="poi-dialogue-choice2-text">Texte Choix 2:</label>
+                            <input type="text" id="poi-dialogue-choice2-text">
+                        </div>
+                        <div class="control-group">
+                            <label>Action Choix 2:</label>
+                            <select id="poi-dialogue-choice2-action-type">
+                                <option value="stat_change">Changement Stat</option>
+                                <option value="log_entry">Entrée Journal</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <input type="text" id="poi-dialogue-choice2-action-param1" placeholder="stat/entry">
+                            <input type="text" id="poi-dialogue-choice2-action-param2" placeholder="value">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="poi-modal-delete-button" class="action-button" style="background-color: #c0392b;">Supprimer</button>
+                <button id="poi-modal-save-button" class="action-button">Sauvegarder</button>
             </div>
         </div>
     </div>

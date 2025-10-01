@@ -56,6 +56,29 @@ export function drawGrid() {
             drawHexagon(x, y, state.grid[r][c]);
         }
     }
+
+    // Draw Narrative POIs
+    if (state.narrativePOIs) {
+        state.narrativePOIs.forEach(poi => {
+            if (poi.triggered) return; // Don't draw triggered POIs
+            const offset = (poi.r % 2) * (HEX_WIDTH / 2);
+            const x = poi.c * HEX_WIDTH + offset + HEX_WIDTH / 2;
+            const y = poi.r * GRID_VERT_SPACING + HEX_HEIGHT / 2;
+            drawPOIMarker(x, y, poi);
+        });
+    }
+}
+
+function drawPOIMarker(x, y, poi) {
+    // In-game version: more subtle, no text.
+    const size = HEX_SIZE / 1.5;
+    ctx.save();
+    ctx.globalAlpha = 0.6;
+    ctx.translate(x, y);
+    ctx.rotate(Math.PI / 4);
+    ctx.fillStyle = '#9B59B6'; // A nice purple
+    ctx.fillRect(-size / 2, -size / 2, size, size);
+    ctx.restore();
 }
 
 function getColorForRelief(relief) {

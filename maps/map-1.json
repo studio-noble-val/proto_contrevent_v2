@@ -1468,5 +1468,22 @@
   ],
   "windGroups": [],
   "globalWindMultiplier": 5,
-  "narrativeZones": []
+  "narrativePOIs": [
+    {
+      "poiId": 1759340842701,
+      "r": 3,
+      "c": 6,
+      "event": {
+        "id": "event_3_6",
+        "type": "cinematic",
+        "content": {
+          "title": "Test cinématique",
+          "text": [
+            "ici le texte de la cinématique. ",
+            "Il est dit : 1 ligne par paragraphe "
+          ]
+        }
+      }
+    }
+  ]
 }

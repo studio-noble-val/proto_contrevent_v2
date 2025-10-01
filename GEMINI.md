@@ -14,7 +14,7 @@ Pour TOUTE nouvelle demande de ma part (ajout de fonctionnalité, correction de 
 
 3.  **Exécution Étape par Étape :**
     - Avant chaque étape, tu attend ma validation. Ensuite tu exécutes en autonomie l'étape en cours.
-    - Tu termines ta réponse en me montrant le code ou le résultat. j'ai besoin de pouvoir tester les avancées ou regression de chaque étape. donc tu me dit comment tester l'objectif de l'étape.
+    - Tu termines ta réponse en me montrant le code ou le résultat. j'ai besoin de pouvoir tester les avancées ou regression de chaque étape. donc tu me dit comment tester l'objectif de l'étape, que dois-je faire et surtout à qu'oi dois-je m'attendre.
     - Si tout va bien, je te donne mon OK. 
     - Dans la majeure partie des cas, il faudra entrer dans un cycle itératif de débugage. Tu prendra soins de consigner toutes les itérations dans le devlog, quand on arrive à fixer un bug.
 
