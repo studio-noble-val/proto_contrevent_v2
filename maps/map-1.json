@@ -1467,5 +1467,6 @@
     }
   ],
   "windGroups": [],
-  "globalWindMultiplier": 5
+  "globalWindMultiplier": 5,
+  "narrativeZones": []
 }

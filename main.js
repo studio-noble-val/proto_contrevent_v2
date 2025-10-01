@@ -6,6 +6,7 @@ import * as wind from './wind.js';
 import * as ui from './ui.js';
 import * as gameplay from './gameplay.js';
 import * as camera from './camera.js';
+import narrativeManager from './narrative.js';
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -77,6 +78,9 @@ async function init() {
     horde.init(canvas, ctx);
     camera.init(canvas, ctx);
     ui.init(canvas);
+
+    // 4. Load narrative events
+    await narrativeManager.loadEvents();
 
     // 3. Determine game mode and load/create map data
     const urlParams = new URLSearchParams(window.location.search);
@@ -168,6 +172,15 @@ function update() {
     wind.applyWindEffects(state);
     ui.updateTopBar();
     gameplay.checkVictoryCondition();
+
+    // --- Narrative Engine Update ---
+    const gameStateForNarrative = {
+        levelId: state.currentMap,
+        horde: state.horde,
+        narrativeZones: state.narrativeZones || [],
+        // We can add more state info as needed, e.g., camera, grid
+    };
+    narrativeManager.update(gameStateForNarrative);
 }
 
 function draw() {

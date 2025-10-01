@@ -1,0 +1,16 @@
+{
+  "name": "Test Narratif",
+  "order": 99,
+  "completed": false,
+  "relief": [
+    [0.5, 0.5, 0.5],
+    [0.5, 0.5, 0.5],
+    [0.5, 0.5, 0.5]
+  ],
+  "spawnPoint": { "r": 1, "c": 1 },
+  "flagPosition": { "r": 1, "c": 2 },
+  "windSources": [],
+  "windGroups": [],
+  "narrativeZones": [],
+  "globalWindMultiplier": 1.0
+}

@@ -6,10 +6,24 @@ import { slugify } from './utils.js';
 
 let canvas;
 let ctx;
+let dialogueContainer, dialogueCharacter, dialogueText, dialogueChoices;
+let cinematicContainer, cinematicTitle, cinematicText;
 
 export function init(canvasElement) {
     canvas = canvasElement;
     ctx = canvas.getContext('2d');
+
+    // Get dialogue elements
+    dialogueContainer = document.getElementById('dialogue-container');
+    dialogueCharacter = document.getElementById('dialogue-character');
+    dialogueText = document.getElementById('dialogue-text');
+    dialogueChoices = document.getElementById('dialogue-choices');
+
+    // Get cinematic elements
+    cinematicContainer = document.getElementById('cinematic-container');
+    cinematicTitle = document.getElementById('cinematic-title');
+    cinematicText = document.getElementById('cinematic-text');
+
     setupEventListeners();
 }
 
@@ -265,4 +279,98 @@ export function updateTopBar() {
 
     const currentScore = Math.max(10000 - elapsedTime * 10, 0);
     scoreDisplay.textContent = currentScore;
+}
+
+// --- Dialogue System ---
+
+let dialogueResolve = null; // To store the resolve function of the promise
+
+export function showDialogue(dialogueData) {
+    return new Promise((resolve) => {
+        dialogueResolve = resolve; // Store the resolver
+
+        dialogueContainer.style.display = 'flex';
+        state.gamePaused = true; // Pause the game
+
+        dialogueCharacter.textContent = dialogueData.character || '';
+        dialogueText.textContent = dialogueData.text || '...';
+        
+        // Clear previous choices
+        dialogueChoices.innerHTML = '';
+
+        if (dialogueData.choices && dialogueData.choices.length > 0) {
+            dialogueData.choices.forEach(choice => {
+                const button = document.createElement('button');
+                button.textContent = choice.text;
+                button.addEventListener('click', () => {
+                    handleChoice(choice);
+                });
+                dialogueChoices.appendChild(button);
+            });
+        } else {
+            // If no choices, it's a cinematic text. Add a "Continue" button.
+            const continueButton = document.createElement('button');
+            continueButton.textContent = 'Continuer...';
+            continueButton.addEventListener('click', () => {
+                handleChoice(null); // No choice was made
+            });
+            dialogueChoices.appendChild(continueButton);
+        }
+    });
+}
+
+function handleChoice(choice) {
+    hideDialogue();
+    if (dialogueResolve) {
+        dialogueResolve(choice); // Resolve the promise with the selected choice
+        dialogueResolve = null;
+    }
+}
+
+export function hideDialogue() {
+    dialogueContainer.style.display = 'none';
+    dialogueChoices.innerHTML = '';
+    // Only unpause if the victory screen is not showing
+    if (document.getElementById('victory-screen').style.display === 'none') {
+        state.gamePaused = false;
+    }
+}
+
+// --- Cinematic System ---
+
+let cinematicResolve = null;
+
+function handleCinematicClick() {
+    hideCinematic();
+    if (cinematicResolve) {
+        cinematicResolve();
+        cinematicResolve = null;
+    }
+}
+
+export function showCinematic(cinematicData) {
+    return new Promise((resolve) => {
+        cinematicResolve = resolve;
+        
+        cinematicContainer.style.display = 'flex';
+        state.gamePaused = true;
+
+        cinematicTitle.textContent = cinematicData.title || '';
+        cinematicText.innerHTML = Array.isArray(cinematicData.text) 
+            ? cinematicData.text.join('<br><br>') 
+            : cinematicData.text;
+
+        // Use a one-time event listener with a small delay to prevent instant click-through
+        setTimeout(() => {
+             cinematicContainer.addEventListener('click', handleCinematicClick, { once: true });
+        }, 200);
+    });
+}
+
+function hideCinematic() {
+    cinematicContainer.style.display = 'none';
+    // Only unpause if other modal/popups are not showing
+    if (document.getElementById('victory-screen').style.display === 'none' && dialogueContainer.style.display === 'none') {
+        state.gamePaused = false;
+    }
 }

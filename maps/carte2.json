@@ -212,5 +212,7 @@
       }
     }
   ],
-  "windGroups": []
+  "windGroups": [],
+  "globalWindMultiplier": 5,
+  "narrativeZones": []
 }

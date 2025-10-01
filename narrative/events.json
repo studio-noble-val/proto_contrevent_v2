@@ -1,0 +1,49 @@
+{
+  "events": [
+    {
+      "id": "event_intro_level1",
+      "type": "cinematic",
+      "trigger": {
+        "type": "on_level_start",
+        "level_id": "map-1"
+      },
+      "content": {
+        "title": "Le Souffle Premier",
+        "text": [
+          "Le vent se lève. Pas la brise amicale de l'Aval, mais une plainte rauque, millénaire.",
+          "Devant vous, la première épreuve. La Horde retient son souffle. Le voyage commence."
+        ]
+      }
+    },
+    {
+      "id": "event_zone_canyon_entry",
+      "type": "dialogue",
+      "trigger": {
+        "type": "enter_zone",
+        "zone_id": "canyon_gorge_venturi"
+      },
+      "content": {
+        "character": "Caracole (Éclaireur)",
+        "text": "La passe se resserre. Le vent va frapper fort ici. On peut tenter de passer en force, ou chercher un chemin plus long mais plus sûr sur les hauteurs.",
+        "choices": [
+          {
+            "text": "En force. Nous devons avancer vite.",
+            "action": {
+              "type": "stat_change",
+              "target": "group",
+              "stat": "stamina",
+              "value": -20
+            }
+          },
+          {
+            "text": "Cherchons un autre passage. La prudence d'abord.",
+            "action": {
+              "type": "log_entry",
+              "entry": "Nous avons décidé de contourner la gorge."
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

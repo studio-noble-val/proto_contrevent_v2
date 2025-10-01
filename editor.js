@@ -45,6 +45,9 @@ const state = {
     globalWindMultiplier: 1.0,
     currentEditingSource: null,
     movingSource: null,
+    narrativeZones: [],
+    currentDrawingZone: null,
+    currentEventId: '',
     // Default wind parameters (will be configurable later)
     windParams: {
         sourceScale: 10,
@@ -64,7 +67,7 @@ const state = {
 };
 
 // --- DOM Elements ---
-let canvas, ctx, brushSizeInput, altitudeInput, intensityInput, toolButtons, paintToolOptionsPanel, sculptToolOptionsPanel, mapRowsInput, mapColsInput, editorSidebar, panelHeader, mapNameInput, mapOrderInput, canvasContainer, saveButton, loadFileButton, resizeButton, backToMenuButton, startSimButton, stopSimButton, resetSimButton, createGroupButton, groupSelect, deleteGroupButton, addToGroupButton, removeFromGroupButton, groupSyncModeSelect, deleteSourceButton, windSourceModal, modalCloseButton, modalSaveButton;
+let canvas, ctx, brushSizeInput, altitudeInput, intensityInput, toolButtons, paintToolOptionsPanel, sculptToolOptionsPanel, mapRowsInput, mapColsInput, editorSidebar, panelHeader, mapNameInput, mapOrderInput, canvasContainer, saveButton, loadFileButton, resizeButton, backToMenuButton, startSimButton, stopSimButton, resetSimButton, createGroupButton, groupSelect, deleteGroupButton, addToGroupButton, removeFromGroupButton, groupSyncModeSelect, deleteSourceButton, windSourceModal, modalCloseButton, modalSaveButton, eventIdInput;
 
 // --- Initialization ---
 function init() {
@@ -101,6 +104,7 @@ function init() {
     windSourceModal = document.getElementById('wind-source-modal');
     modalCloseButton = document.getElementById('modal-close-button');
     modalSaveButton = document.getElementById('modal-save-button');
+    eventIdInput = document.getElementById('event-id');
 
     state.intensity = INTENSITY_LEVELS[intensityInput.value];
     state.mapName = mapNameInput.value;
@@ -236,6 +240,7 @@ function setupEventListeners() {
     altitudeInput.addEventListener('input', e => state.altitude = parseFloat(e.target.value));
     intensityInput.addEventListener('input', e => state.intensity = INTENSITY_LEVELS[e.target.value]);
     backToMenuButton.addEventListener('click', () => window.location.href = 'index.html');
+    eventIdInput.addEventListener('change', e => state.currentEventId = e.target.value.trim());
 
     // Tool selection
     toolButtons.forEach(button => {
@@ -273,10 +278,14 @@ function setupEventListeners() {
                 state.selectionEnd = mousePos;
             } else if (['paint', 'raise', 'lower'].includes(state.brushMode)) {
                 state.isPainting = true;
-            }
-            handleCanvasClick(e);
-        }
-    });
+                            }
+                            handleCanvasClick(e);
+                        } else if (e.button === 2) { // Right mouse
+                            if (state.brushMode === 'drawZone' && state.currentDrawingZone) {
+                                e.preventDefault(); // Prevent context menu
+                                finishCurrentZone();
+                            }
+                        }    });
 
     window.addEventListener('mouseup', e => {
         if (state.isSelecting) {
@@ -528,6 +537,7 @@ function saveMap() {
         windSources: state.windSources,
         windGroups: state.windGroups,
         globalWindMultiplier: state.globalWindMultiplier,
+        narrativeZones: state.narrativeZones,
     };
     const filename = slugify(state.mapName) + '.json';
     const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: 'application/json' });
@@ -584,6 +594,9 @@ function loadMapFromFile() {
                     // --- Wind Sources and Parameters Loading ---
                     state.windSources = data.windSources || [];
                     state.windGroups = data.windGroups || [];
+
+                    // --- Narrative Zones Loading ---
+                    state.narrativeZones = data.narrativeZones || [];
 
                     // Backward compatibility for maps with global windParams or missing gain/id
                     state.windSources.forEach((source, index) => {
@@ -706,7 +719,14 @@ function handleCanvasClick(e) {
             } else if (sourceAtClick) {
                 // No source is being moved, so pick this one up.
                 state.movingSource = sourceAtClick;
-                state.selectedWindSources = [sourceAtClick]; // Select it to give visual feedback
+            }
+            break;
+        case "drawZone":
+            const worldPos = getTransformedMousePos(e);
+            if (!state.currentDrawingZone) {
+                startNewZone(worldPos);
+            } else {
+                addPointToCurrentZone(worldPos);
             }
             break;
     }
@@ -849,6 +869,9 @@ function drawGrid() {
         drawWindSourceMarker(x + HEX_WIDTH / 2, y + HEX_HEIGHT / 2, source);
     });
 
+    // Draw narrative zones within the transformed context
+    drawNarrativeZones();
+
     ctx.restore();
 
     // Draw selection rectangle on top of everything
@@ -966,6 +989,84 @@ function getGroupColor(groupId) {
     if (i === -1) return null;
     const hue = (i * 137.5) % 360; // Golden angle for distinct colors
     return `hsl(${hue}, 70%, 50%)`;
+}
+
+// --- Narrative Zone Functions ---
+function startNewZone(startPoint) {
+    if (!state.currentEventId) {
+        alert("Veuillez d'abord entrer un 'Event ID' pour la zone narrative.");
+        return;
+    }
+    state.currentDrawingZone = {
+        id: state.currentEventId,
+        points: [startPoint]
+    };
+}
+
+function addPointToCurrentZone(point) {
+    if (state.currentDrawingZone) {
+        state.currentDrawingZone.points.push(point);
+    }
+}
+
+function finishCurrentZone() {
+    if (state.currentDrawingZone && state.currentDrawingZone.points.length > 2) {
+        state.narrativeZones.push(state.currentDrawingZone);
+    }
+    state.currentDrawingZone = null;
+    drawGrid();
+}
+
+function drawNarrativeZones() {
+    if (!ctx) return; // Ensure context is available
+
+    // Draw completed zones
+    ctx.lineWidth = 2 / state.zoomLevel;
+    ctx.font = `${14 / state.zoomLevel}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    state.narrativeZones.forEach(zone => {
+        if (!zone.points || zone.points.length < 1) return;
+        ctx.beginPath();
+        zone.points.forEach((point, index) => {
+            if (index === 0) {
+                ctx.moveTo(point.x, point.y);
+            } else {
+                ctx.lineTo(point.x, point.y);
+            }
+        });
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(255, 0, 255, 0.15)';
+        ctx.strokeStyle = 'rgba(255, 0, 255, 0.7)';
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw the ID label in the center of the zone
+        if (zone.points.length > 0) {
+            const centerX = zone.points.reduce((sum, p) => sum + p.x, 0) / zone.points.length;
+            const centerY = zone.points.reduce((sum, p) => sum + p.y, 0) / zone.points.length;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.fillText(zone.id, centerX, centerY);
+        }
+    });
+
+    // Draw the zone currently being created
+    if (state.currentDrawingZone) {
+        ctx.beginPath();
+        state.currentDrawingZone.points.forEach((point, index) => {
+            if (index === 0) {
+                ctx.moveTo(point.x, point.y);
+            } else {
+                ctx.lineTo(point.x, point.y);
+            }
+            // Draw vertex points
+            ctx.fillStyle = 'rgba(255, 0, 255, 1)';
+            ctx.fillRect(point.x - 3 / state.zoomLevel, point.y - 3 / state.zoomLevel, 6 / state.zoomLevel, 6 / state.zoomLevel);
+        });
+        ctx.strokeStyle = 'rgba(255, 0, 255, 1)';
+        ctx.stroke();
+    }
 }
 
 // --- Initialization ---

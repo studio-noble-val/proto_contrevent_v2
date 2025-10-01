@@ -291,3 +291,36 @@ Cette session s'est concentrée sur la finalisation de l'éditeur de vent en imp
     - Un état `movingSource` a été ajouté pour gérer explicitement la source en cours de déplacement.
     - Le processus est désormais un "cliquer-pour-saisir" puis "cliquer-pour-poser", avec un retour visuel clair (la source devient verte).
 
+
+## 9. Implémentation du Système Narratif (Phases 1-3)
+
+Cette session a été consacrée à la mise en place des fondations du gameplay narratif, incluant les dialogues à choix et les cinématiques.
+
+- **Moteur d'Événements (`narrative.js`)**: Un gestionnaire a été créé pour charger les événements depuis un fichier `events.json`, vérifier leurs conditions de déclenchement (démarrage de niveau, entrée dans une zone) et exécuter leur contenu.
+- **Éditeur de Zones Narratives**: L'éditeur de carte a été augmenté d'un outil permettant de dessiner des zones polygonales et de leur associer un ID d'événement, qui sont ensuite sauvegardées dans le fichier de la carte.
+- **Interface de Dialogue et Cinématique (`ui.js`)**:
+    - Une interface de **dialogue** a été créée, permettant d'afficher un texte, un personnage, et des boutons de choix.
+    - Une interface de **cinématique** avec des bandes noires ("letterbox") a été ajoutée pour les textes narratifs non-interactifs.
+- **Conséquences des Choix (`horde.js`)**: Le système permet maintenant que les choix de dialogue déclenchent des actions, notamment la modification des statistiques (`stamina`, `lucidity`, `cohesion`) de la horde.
+
+## 10. Initialisation du Journal de l'Archiviste (Phase 4)
+
+- **Gestionnaire de Journal (`journal.js`)**: Un `JournalManager` a été créé pour centraliser l'enregistrement des événements clés de la partie.
+- **Enregistrement Automatique**: Le journal enregistre maintenant automatiquement l'entrée dans des zones narratives et les conséquences textuelles de certains choix de dialogue.
+
+## 11. Incident et Maintenance Corrective
+
+- **Passage en "Mode Dégradé"**: Un incident a été signalé, activant le protocole de sécurité et un mode de travail plus guidé.
+- **Correction de Bugs Critiques**:
+    - **Contrôles Bloqués**: Correction d'un bug majeur où les nouvelles interfaces de dialogue et de cinématique, même invisibles, bloquaient les clics de la souris sur le jeu.
+    - **Menu des Missions**: Correction d'un problème qui empêchait l'affichage des nouvelles cartes de test dans le menu principal, dû à une mauvaise configuration du fichier `manifest.json`.
+
+## 12. Maintenance et Refactoring (Session du 30 septembre 2025)
+
+Cette session a été dédiée à la résolution de bugs critiques et à la planification d'une refonte de l'éditeur.
+
+- **Correction du bug `JSON.parse`** : Résolution d'une erreur bloquante sur la page de campagne causée par un `manifest.json` malformé et des fichiers de carte (`.json`) incomplets ou manquants.
+    - Le `manifest.json` a été corrigé pour être une liste de noms de fichiers.
+    - Le fichier `test-narratif.json` manquant a été créé avec un contenu par défaut.
+    - Le fichier `carte2.json` a été mis à jour pour inclure les clés `globalWindMultiplier` et `narrativeZones` manquantes.
+- **Planification de la refonte de l'éditeur** : Un plan détaillé a été établi pour remplacer le système de "zones narratives" par des "Points d'Intérêt (POI) narratifs" plus simples à placer, suite à la demande de l'utilisateur.

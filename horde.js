@@ -53,6 +53,8 @@ export function initHorde(spawnPoint) {
             strength: archetype.strength,
             endurance: archetype.endurance,
             stamina: 100, // Stamina can be linked to endurance later
+            lucidity: 100,
+            cohesion: 100,
             isSelected: false,
             target: null
         });
@@ -240,6 +242,19 @@ export function setGroupTarget(destination) {
         const rotatedY = offset.x * Math.sin(angle) + offset.y * Math.cos(angle);
         p.target = { x: destination.x + rotatedX, y: destination.y + rotatedY };
         p.baseSpeed = formationSpeed;
+    });
+}
+
+export function applyStatChange({ stat, value, target = 'group' }) {
+    const membersToAffect = target === 'group'
+        ? state.horde
+        : state.horde.filter(p => p.id === target);
+
+    membersToAffect.forEach(p => {
+        if (p.hasOwnProperty(stat)) {
+            p[stat] = Math.max(0, Math.min(100, p[stat] + value)); // Clamp between 0 and 100
+            console.log(`Stat Change: ${p.name} ${stat} is now ${p[stat]}`);
+        }
     });
 }
 
