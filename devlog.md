@@ -324,3 +324,31 @@ Cette session a été dédiée à la résolution de bugs critiques et à la plan
     - Le fichier `test-narratif.json` manquant a été créé avec un contenu par défaut.
     - Le fichier `carte2.json` a été mis à jour pour inclure les clés `globalWindMultiplier` et `narrativeZones` manquantes.
 - **Planification de la refonte de l'éditeur** : Un plan détaillé a été établi pour remplacer le système de "zones narratives" par des "Points d'Intérêt (POI) narratifs" plus simples à placer, suite à la demande de l'utilisateur.
+
+## 13. Refonte du Système Narratif et Finalisation des POI (Session du 01 octobre 2025)
+
+Cette session a été consacrée à une refonte majeure du système de déclenchement narratif, abandonnant les zones polygonales au profit d'un système de Points d'Intérêt (POI) robustes et éditables.
+
+**1. Nettoyage de l'Ancien Système :**
+- Suppression complète de la fonctionnalité de "Zones Narratives" des fichiers `editor.html` et `editor.js`.
+- Le code de dessin, de sauvegarde et de détection des polygones a été entièrement retiré.
+
+**2. Implémentation d'un Éditeur de POI Complet :**
+- **Nouvelle Structure de Données :** Les POI n'embarquent plus un simple ID, mais l'intégralité de l'objet `event` (type, contenu, choix, etc.). Cela rend chaque carte narrativement autonome.
+- **Interface de l'Éditeur :**
+    - Ajout d'outils pour **créer** et **déplacer** les POI.
+    - Création d'une **modale d'édition complète** qui permet de :
+        - Choisir le type d'événement (`dialogue` ou `cinematic`).
+        - Éditer tous les champs associés (personnage, titre, texte).
+        - Configurer jusqu'à deux choix de dialogue avec leurs actions respectives (`stat_change` ou `log_entry`).
+- **Logique de Déclenchement en Jeu :**
+    - Le moteur de jeu (`main.js`, `state.js`) charge désormais correctement les `narrativePOIs` depuis les fichiers de carte.
+    - Le moteur de rendu (`grid.js`) affiche les POI en jeu et les masque après déclenchement.
+    - Le moteur narratif (`narrative.js`) a été refactorisé pour fonctionner avec les données embarquées des POI. La condition de déclenchement est maintenant basée sur la présence d'au moins **deux membres de la Horde** sur la case du POI.
+
+**3. Débogage et Corrections :**
+- Correction d'une erreur de syntaxe dans `editor.js` suite au nettoyage initial.
+- Correction d'un bug de chargement en mode campagne en initialisant `narrativePOIs: []` dans `state.js`.
+- Correction d'un plantage au démarrage du jeu dû à un appel à la fonction obsolète `loadEvents()`.
+
+Le système narratif est maintenant beaucoup plus modulaire, puissant et entièrement gérable depuis l'éditeur de carte.
