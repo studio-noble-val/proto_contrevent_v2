@@ -352,3 +352,5 @@ Cette session a été consacrée à une refonte majeure du système de déclench
 - Correction d'un plantage au démarrage du jeu dû à un appel à la fonction obsolète `loadEvents()`.
 
 Le système narratif est maintenant beaucoup plus modulaire, puissant et entièrement gérable depuis l'éditeur de carte.
+
+**TEST COMMIT**
